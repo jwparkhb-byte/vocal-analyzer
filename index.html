@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>원장님 배음 분석기 V2.5</title>
+    <title>원장님 배음 분석기 V2.6 (초저음 확장)</title>
     <style>
         body { background: #121212; color: #e0e0e0; font-family: sans-serif; text-align: center; margin: 0; padding-top: 10px; }
         canvas { width: 100%; height: 35vh; background: #000; border-bottom: 2px solid #333; margin-bottom: 10px; }
@@ -44,8 +44,8 @@
     <canvas id="visualizer"></canvas>
     
     <div class="controls">
-        <button id="startBtn">분석 시작 (롱톤 보장 모드)</button>
-        <div id="statusMsg" class="status">배음 기둥이 많을수록 높은 점수를 획득합니다.</div>
+        <button id="startBtn">분석 시작 (저음역 정밀 추적 탑재)</button>
+        <div id="statusMsg" class="status">C1 대역의 극저음까지 정밀하게 측정합니다.</div>
     </div>
 
     <script>
@@ -63,7 +63,9 @@
         let noSignalFrames = 0;
 
         const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-        const START_NOTE = 36; 
+        
+        // [업데이트] 최저음을 C1 (MIDI 24)으로 대폭 확장
+        const START_NOTE = 24; 
         const END_NOTE = 84;   
         const PIXELS_PER_NOTE = 40;
         const TARGET_BOX_Y = 70; 
@@ -92,7 +94,7 @@
             for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
             rms = Math.sqrt(rms / SIZE);
             
-            if (rms < 0.015) return -1; // 최소 볼륨 차단막
+            if (rms < 0.015) return -1; 
 
             let r1 = 0, r2 = SIZE - 1, thres = 0.2;
             for (let i = 0; i < SIZE / 2; i++) if (Math.abs(buf[i]) < thres) { r1 = i; break; }
@@ -111,7 +113,6 @@
                 if (c[i] > maxval) { maxval = c[i]; maxpos = i; }
             }
             
-            // [소프트웨어 노이즈 게이트] 파형의 규칙성이 60% 미만이면 백색소음으로 간주
             if (maxval < c[0] * 0.6) return -1; 
 
             let T0 = maxpos;
@@ -125,12 +126,13 @@
         startBtn.onclick = async () => {
             try {
                 if (audioCtx) audioCtx.close();
-                // 롱톤 끊김 방지를 위해 하드웨어 필터 무효화 (원음 수음)
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } });
                 
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 2048;
+                
+                // [업데이트] 극저음 파형 캡처를 위해 버퍼 사이즈 2배 증가
+                analyser.fftSize = 4096; 
                 
                 const source = audioCtx.createMediaStreamSource(stream);
                 source.connect(analyser);
@@ -204,41 +206,38 @@
                 }
             }
 
-            // 스펙트럼 렌더링 및 엄격한 점수 연산
             ctx.fillStyle = 'black';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            const barWidth = (canvas.width / (dataArray.length / 2)) * 3; 
+            
+            // fftSize 증가에 비례하여 화면에 그릴 대역폭(약 5500Hz) 유지
+            const displayBins = dataArray.length / 4; 
+            const barWidth = (canvas.width / displayBins) * 1.5; 
             let x = 0; let sumEnergy = 0; let peakEnergy = 0; 
             
-            // 배음 기둥 카운팅을 위한 변수
             let harmonicPeakCount = 0;
 
-            for (let i = 0; i < dataArray.length / 4; i++) {
+            for (let i = 0; i < displayBins; i++) {
                 let val = dataArray[i];
                 sumEnergy += val;
                 if (val > peakEnergy) peakEnergy = val;
 
-                // 극댓값(Peak) 찾기: 양옆의 값보다 크고, 일정 임계치(노이즈) 이상일 때만 기둥으로 인정
-                if (i > 1 && i < (dataArray.length / 4) - 1) {
+                if (i > 1 && i < displayBins - 1) {
                     if (val > dataArray[i-1] && val > dataArray[i+1] && val > 40) {
                         harmonicPeakCount++;
                     }
                 }
 
                 const barHeight = val * (canvas.height / 255);
-                ctx.fillStyle = `hsl(${i * 3}, 100%, 50%)`;
+                ctx.fillStyle = `hsl(${i * 1.5}, 100%, 50%)`;
                 ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
                 x += barWidth + 1;
             }
 
-            let avgEnergy = sumEnergy / (dataArray.length / 4);
+            let avgEnergy = sumEnergy / displayBins;
             let score = 0;
             
             if (avgEnergy > 0 && pitch !== -1) {
-                // 1. 기본 점수 (신호대잡음비, 최대 30점)
                 let snrScore = Math.min(30, (peakEnergy / (avgEnergy + 1)) * 1.5);
-                
-                // 2. 배음 숲 가산점 (기둥 1개당 5점, 최대 70점)
                 let peakScore = Math.min(70, harmonicPeakCount * 5);
                 
                 score = Math.floor(snrScore + peakScore);
