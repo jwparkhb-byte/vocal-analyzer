@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>원장님 배음 분석기 V2.5</title>
+    <style>
+        body { background: #121212; color: #e0e0e0; font-family: sans-serif; text-align: center; margin: 0; padding-top: 10px; }
+        canvas { width: 100%; height: 35vh; background: #000; border-bottom: 2px solid #333; margin-bottom: 10px; }
+        
+        .dashboard { display: flex; justify-content: space-around; background: #1e1e1e; padding: 15px; margin: 0 10px 10px 10px; border-radius: 8px; align-items: center; }
+        .metric-box { text-align: center; width: 45%; }
+        .metric-title { font-size: 14px; color: #aaa; margin-bottom: 5px; }
+        .metric-value { font-size: 28px; font-weight: bold; color: #00ff00; }
+        #scoreValue { font-size: 36px; }
+
+        .vertical-tuner-wrapper { position: relative; width: 120px; height: 180px; margin: 0 auto 15px auto; background: #1a1a1a; border: 2px solid #333; border-radius: 12px; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
+        #dialTape { position: absolute; left: 0; width: 100%; transition: transform 0.1s linear; }
+        .note-tick { position: absolute; left: 0; width: 100%; height: 40px; margin-top: -20px; line-height: 40px; text-align: center; font-size: 26px; font-weight: bold; color: #555; transition: color 0.2s, font-size 0.2s; }
+        .target-box { position: absolute; top: 70px; left: 10%; width: 80%; height: 40px; border: 2px solid #555; border-radius: 6px; z-index: 10; pointer-events: none; transition: border-color 0.2s; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+
+        .controls { padding: 10px; }
+        button { padding: 12px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; margin: 5px; background: #00ff00; color: #000; }
+        .status { margin-top: 10px; color: #888; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="metric-box">
+            <div class="metric-title">오차 (Cents)</div>
+            <div class="metric-value" id="centsValue">--</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-title">성대 접촉 밀도</div>
+            <div class="metric-value" id="scoreValue">0점</div>
+        </div>
+    </div>
+
+    <div class="vertical-tuner-wrapper">
+        <div id="dialTape"></div>
+        <div class="target-box" id="targetBox"></div>
+    </div>
+
+    <canvas id="visualizer"></canvas>
+    
+    <div class="controls">
+        <button id="startBtn">분석 시작 (롱톤 보장 모드)</button>
+        <div id="statusMsg" class="status">배음 기둥이 많을수록 높은 점수를 획득합니다.</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('visualizer');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        const centsValueElem = document.getElementById('centsValue');
+        const scoreValueElem = document.getElementById('scoreValue');
+        const dialTape = document.getElementById('dialTape');
+        const targetBox = document.getElementById('targetBox');
+
+        let audioCtx, analyser, dataArray, timeDomainArray;
+        let smoothedFloatNote = 0;
+        let isActive = false;
+        let noSignalFrames = 0;
+
+        const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        const START_NOTE = 36; 
+        const END_NOTE = 84;   
+        const PIXELS_PER_NOTE = 40;
+        const TARGET_BOX_Y = 70; 
+
+        function initDial() {
+            dialTape.innerHTML = '';
+            for (let i = START_NOTE; i <= END_NOTE; i++) {
+                let div = document.createElement('div');
+                div.className = 'note-tick';
+                div.id = 'note-' + i;
+                let noteName = noteStrings[i % 12] + Math.floor(i / 12 - 1);
+                div.innerText = noteName;
+                div.style.top = `${(END_NOTE - i) * PIXELS_PER_NOTE}px`;
+                dialTape.appendChild(div);
+            }
+        }
+        initDial();
+
+        function floatNoteFromPitch(frequency) {
+            return 12 * (Math.log(frequency / 440) / Math.log(2)) + 69;
+        }
+
+        function autoCorrelate(buf, sampleRate) {
+            let SIZE = buf.length;
+            let rms = 0;
+            for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
+            rms = Math.sqrt(rms / SIZE);
+            
+            if (rms < 0.015) return -1; // 최소 볼륨 차단막
+
+            let r1 = 0, r2 = SIZE - 1, thres = 0.2;
+            for (let i = 0; i < SIZE / 2; i++) if (Math.abs(buf[i]) < thres) { r1 = i; break; }
+            for (let i = 1; i < SIZE / 2; i++) if (Math.abs(buf[SIZE - i]) < thres) { r2 = SIZE - i; break; }
+
+            buf = buf.slice(r1, r2);
+            SIZE = buf.length;
+            let c = new Array(SIZE).fill(0);
+            for (let i = 0; i < SIZE; i++)
+                for (let j = 0; j < SIZE - i; j++)
+                    c[i] = c[i] + buf[j] * buf[j + i];
+
+            let d = 0; while (c[d] > c[d + 1]) d++;
+            let maxval = -1, maxpos = -1;
+            for (let i = d; i < SIZE; i++) {
+                if (c[i] > maxval) { maxval = c[i]; maxpos = i; }
+            }
+            
+            // [소프트웨어 노이즈 게이트] 파형의 규칙성이 60% 미만이면 백색소음으로 간주
+            if (maxval < c[0] * 0.6) return -1; 
+
+            let T0 = maxpos;
+            let x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
+            let a = (x1 + x3 - 2 * x2) / 2;
+            let b = (x3 - x1) / 2;
+            if (a) T0 = T0 - b / (2 * a);
+            return sampleRate / T0;
+        }
+
+        startBtn.onclick = async () => {
+            try {
+                if (audioCtx) audioCtx.close();
+                // 롱톤 끊김 방지를 위해 하드웨어 필터 무효화 (원음 수음)
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } });
+                
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 2048;
+                
+                const source = audioCtx.createMediaStreamSource(stream);
+                source.connect(analyser);
+                
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                timeDomainArray = new Float32Array(analyser.fftSize);
+                
+                startBtn.style.display = 'none';
+                draw();
+            } catch (err) {
+                alert("마이크 권한을 확인해 주세요.");
+            }
+        };
+
+        function draw() {
+            requestAnimationFrame(draw);
+            analyser.getByteFrequencyData(dataArray);
+            analyser.getFloatTimeDomainData(timeDomainArray);
+
+            let pitch = autoCorrelate(timeDomainArray, audioCtx.sampleRate);
+            
+            if (pitch !== -1) {
+                noSignalFrames = 0;
+                let currentFloatNote = floatNoteFromPitch(pitch);
+
+                if (!isActive) {
+                    smoothedFloatNote = currentFloatNote;
+                    isActive = true;
+                } else {
+                    smoothedFloatNote = (smoothedFloatNote * 0.85) + (currentFloatNote * 0.15);
+                }
+
+                let nearestNote = Math.round(smoothedFloatNote);
+                let centsDiff = Math.round((smoothedFloatNote - nearestNote) * 100);
+                
+                centsValueElem.innerText = (centsDiff > 0 ? "+" : "") + centsDiff;
+
+                let yOffset = TARGET_BOX_Y - ((END_NOTE - smoothedFloatNote) * PIXELS_PER_NOTE);
+                dialTape.style.transform = `translateY(${yOffset}px)`;
+
+                document.querySelectorAll('.note-tick').forEach(el => {
+                    el.style.color = '#444';
+                    el.style.fontSize = '24px';
+                });
+                
+                let activeTick = document.getElementById('note-' + nearestNote);
+                if (activeTick) {
+                    activeTick.style.fontSize = '32px';
+                    if (Math.abs(centsDiff) <= 10) {
+                        activeTick.style.color = '#00ff00';
+                        targetBox.style.borderColor = '#00ff00';
+                        centsValueElem.style.color = '#00ff00';
+                    } else {
+                        activeTick.style.color = '#ffaa00';
+                        targetBox.style.borderColor = '#ffaa00';
+                        centsValueElem.style.color = '#ffaa00';
+                    }
+                }
+
+            } else {
+                noSignalFrames++;
+                if (noSignalFrames > 15) {
+                    isActive = false;
+                    centsValueElem.innerText = "--";
+                    targetBox.style.borderColor = "#555";
+                    centsValueElem.style.color = "#888";
+                    document.querySelectorAll('.note-tick').forEach(el => {
+                        el.style.color = '#444';
+                        el.style.fontSize = '24px';
+                    });
+                }
+            }
+
+            // 스펙트럼 렌더링 및 엄격한 점수 연산
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const barWidth = (canvas.width / (dataArray.length / 2)) * 3; 
+            let x = 0; let sumEnergy = 0; let peakEnergy = 0; 
+            
+            // 배음 기둥 카운팅을 위한 변수
+            let harmonicPeakCount = 0;
+
+            for (let i = 0; i < dataArray.length / 4; i++) {
+                let val = dataArray[i];
+                sumEnergy += val;
+                if (val > peakEnergy) peakEnergy = val;
+
+                // 극댓값(Peak) 찾기: 양옆의 값보다 크고, 일정 임계치(노이즈) 이상일 때만 기둥으로 인정
+                if (i > 1 && i < (dataArray.length / 4) - 1) {
+                    if (val > dataArray[i-1] && val > dataArray[i+1] && val > 40) {
+                        harmonicPeakCount++;
+                    }
+                }
+
+                const barHeight = val * (canvas.height / 255);
+                ctx.fillStyle = `hsl(${i * 3}, 100%, 50%)`;
+                ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                x += barWidth + 1;
+            }
+
+            let avgEnergy = sumEnergy / (dataArray.length / 4);
+            let score = 0;
+            
+            if (avgEnergy > 0 && pitch !== -1) {
+                // 1. 기본 점수 (신호대잡음비, 최대 30점)
+                let snrScore = Math.min(30, (peakEnergy / (avgEnergy + 1)) * 1.5);
+                
+                // 2. 배음 숲 가산점 (기둥 1개당 5점, 최대 70점)
+                let peakScore = Math.min(70, harmonicPeakCount * 5);
+                
+                score = Math.floor(snrScore + peakScore);
+                
+                if (score > 100) score = 100;
+                if (score < 0) score = 0;
+            }
+
+            scoreValueElem.innerText = score + "점";
+            scoreValueElem.style.color = score >= 80 ? "#00ff00" : (score >= 50 ? "#ffaa00" : "#ff4444");
+        }
+
+        window.onresize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight * 0.35;
+        };
+        window.onresize();
+    </script>
+</body>
+</html>
