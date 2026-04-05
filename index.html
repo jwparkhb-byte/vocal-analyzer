@@ -3,892 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>배음 분석기 PRO</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<title>VOCAL LAB</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:       #07090d;
-  --surf:     #0d1117;
-  --surf2:    #161b22;
-  --border:   #1e2530;
-  --border2:  #2d3748;
-  --text:     #c9d1d9;
-  --muted:    #4a5568;
-  --amber:    #f0a500;
-  --amber-d:  #7a5200;
-  --green:    #3fb950;
-  --green-d:  #1a4d24;
-  --red:      #f85149;
-  --blue:     #58a6ff;
-  --cyan:     #79c0ff;
+:root{
+  --bg:#080705;--surf:#100e0b;--surf2:#181410;--bord:#252018;--bord2:#38301f;
+  --text:#e8ddd0;--muted:#6b5d50;--ember:#e8662a;--gold:#d4a017;--gold2:#f0c040;
+  --cream:#f5e6c8;--green:#5dba6a;--blue:#5b8dd9;--dim:#2a2218;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg)}
 body{
-  background:var(--bg);color:var(--text);
-  font-family:'Rajdhani',sans-serif;
-  height:100vh;display:flex;flex-direction:column;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;font-family:'Noto Sans KR',sans-serif;color:var(--text);
+  padding:24px;overflow:auto;
 }
-
-/* ───── Header ───── */
-.hdr{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:7px 14px;background:var(--surf);
-  border-bottom:1px solid var(--border);flex-shrink:0;
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:.6;
 }
-.hdr-title{
-  font-family:'Share Tech Mono',monospace;
-  font-size:12px;letter-spacing:.18em;color:var(--amber);
+.wrap{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:40px;width:100%;max-width:780px;}
+.site-eyebrow{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.28em;color:var(--ember);text-transform:uppercase;}
+.site-title{font-family:'Bebas Neue',sans-serif;font-size:72px;letter-spacing:.08em;color:var(--cream);line-height:.9;text-align:center;}
+.site-title span{color:var(--ember)}
+.site-sub{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:.14em;text-align:center;margin-top:-28px;}
+.divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--bord2),transparent);}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;}
+@media(max-width:600px){.cards{grid-template-columns:1fr}}
+.card{
+  background:var(--surf);border:1px solid var(--bord);border-radius:10px;
+  padding:28px 24px 22px;display:flex;flex-direction:column;gap:16px;
+  position:relative;overflow:hidden;transition:border-color .25s,transform .2s;
+  cursor:pointer;text-decoration:none;color:inherit;
 }
-.hdr-right{display:flex;align-items:center;gap:12px}
-.status-pill{
-  display:flex;align-items:center;gap:6px;
-  font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);
-}
-.dot{
-  width:7px;height:7px;border-radius:50%;
-  background:var(--muted);transition:background .3s,box-shadow .3s;
-}
-.dot.on{background:var(--green);box-shadow:0 0 7px var(--green);animation:blink 2s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
-
-/* ───── Main body ───── */
-.main{
-  display:flex;flex:1;overflow:hidden;
-  gap:1px;background:var(--border);
-}
-
-/* ──── Left panel: Tuner ──── */
-.p-left{
-  width:154px;flex-shrink:0;background:var(--surf);
-  display:flex;flex-direction:column;align-items:center;
-  padding:14px 10px;gap:12px;
-}
-.plabel{
-  font-size:9px;letter-spacing:.14em;color:var(--muted);
-  text-transform:uppercase;align-self:flex-start;width:100%;
-}
-
-/* Dial */
-.dial-wrap{
-  position:relative;width:100%;height:230px;
-  background:var(--bg);border:1px solid var(--border);
-  border-radius:4px;overflow:hidden;
-}
-.dial-hairline{
-  position:absolute;top:50%;left:0;right:0;height:1px;
-  background:var(--amber);opacity:.35;z-index:5;pointer-events:none;
-}
-.dial-dot{
-  position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  width:9px;height:9px;border-radius:50%;
-  background:var(--amber);box-shadow:0 0 10px var(--amber);
-  z-index:6;pointer-events:none;
-}
-#dialTape{position:absolute;left:0;width:100%;will-change:transform}
-.ntick{
-  position:absolute;left:0;width:100%;height:40px;margin-top:-20px;
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;
-  color:var(--border2);letter-spacing:.04em;
-  transition:color .12s,font-size .12s;
-}
-.ntick.oct{border-top:1px solid var(--border)}
-
-/* Cents bar */
-.cents-wrap{width:100%}
-.cents-num{
-  font-family:'Share Tech Mono',monospace;font-size:24px;
-  text-align:center;color:var(--amber);min-height:30px;
-  transition:color .15s;
-}
-.cents-lbl{font-size:9px;color:var(--muted);text-align:center;letter-spacing:.12em;margin-bottom:5px}
-.cents-track{
-  position:relative;height:5px;background:var(--surf2);
-  border-radius:3px;overflow:hidden;
-}
-.cents-fill{
-  position:absolute;height:100%;border-radius:3px;
-  transition:left .1s,width .1s,background .15s;
-  background:var(--amber);
-}
-.cents-center{
-  position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;
-  background:var(--muted);
-}
-
-/* Freq readout */
-.freq-readout{
-  font-family:'Share Tech Mono',monospace;
-  font-size:14px;color:var(--cyan);
-  text-align:center;width:100%;
-}
-
-/* ──── Centre: spectrum + wave ──── */
-.p-centre{
-  flex:1;background:var(--surf);
-  display:flex;flex-direction:column;overflow:hidden;
-}
-.spec-wrap{flex:1;position:relative;overflow:hidden}
-#specCanvas{position:absolute;inset:0;width:100%;height:100%}
-.wave-strip{height:72px;border-top:1px solid var(--border);flex-shrink:0;position:relative}
-#waveCanvas{position:absolute;inset:0;width:100%;height:100%}
-
-/* ──── Right panel: metrics ──── */
-.p-right{
-  width:184px;flex-shrink:0;background:var(--surf);
-  display:flex;flex-direction:column;
-  padding:14px 12px;gap:14px;overflow-y:auto;
-}
-.mcard{border:1px solid var(--border);border-radius:4px;padding:10px;background:var(--bg)}
-.mname{font-size:9px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
-.mval{
-  font-family:'Share Tech Mono',monospace;
-  font-size:28px;line-height:1;color:var(--green);transition:color .2s;
-}
-.mval.amber{color:var(--amber)}
-.mval.red{color:var(--red)}
-.mval.blue{color:var(--blue)}
-.munit{font-size:9px;color:var(--muted);margin-top:3px}
-.gauge-track{height:5px;background:var(--surf2);border-radius:3px;margin-top:8px;overflow:hidden}
-.gauge-fill{height:100%;border-radius:3px;transition:width .2s,background .2s}
-
-/* Harmonics */
-.harm-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
-.harm-row{display:flex;align-items:center;gap:6px}
-.harm-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);width:22px;flex-shrink:0}
-.harm-track{flex:1;height:7px;background:var(--surf2);border-radius:2px;overflow:hidden}
-.harm-fill{height:100%;border-radius:2px;transition:width .12s}
-.harm-pct{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);width:26px;text-align:right}
-
-/* ──── Controls bar ──── */
-.ctrl-bar{
-  padding:9px 14px;border-top:1px solid var(--border);
-  background:var(--surf);display:flex;align-items:center;
-  gap:10px;flex-shrink:0;
-}
-.btn{
-  padding:7px 18px;font-family:'Rajdhani',sans-serif;
-  font-size:13px;font-weight:700;letter-spacing:.09em;
-  cursor:pointer;border:1px solid var(--amber);border-radius:3px;
-  background:transparent;color:var(--amber);text-transform:uppercase;
-  transition:background .15s,color .15s;
-}
-.btn:hover{background:var(--amber);color:var(--bg)}
-.btn-red{border-color:var(--red);color:var(--red)}
-.btn-red:hover{background:var(--red);color:var(--bg)}
-.vtoggle{display:flex;gap:1px}
-.vbtn{
-  padding:5px 10px;font-family:'Share Tech Mono',monospace;font-size:10px;
-  cursor:pointer;border:1px solid var(--border2);background:var(--bg);
-  color:var(--muted);letter-spacing:.06em;transition:all .15s;
-}
-.vbtn.on{background:var(--surf2);color:var(--text);border-color:var(--muted)}
-.ctrl-msg{
-  font-family:'Share Tech Mono',monospace;font-size:11px;
-  color:var(--muted);flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
-}
-
-/* ──── Start overlay ──── */
-.overlay{
-  position:fixed;inset:0;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:18px;z-index:100;
-}
-.ov-title{
-  font-size:32px;font-weight:700;color:var(--amber);
-  letter-spacing:.12em;text-transform:uppercase;
-}
-.ov-sub{
-  font-family:'Share Tech Mono',monospace;
-  font-size:12px;color:var(--muted);letter-spacing:.16em;margin-top:-10px;
-}
-.feat-grid{
-  display:flex;flex-direction:column;gap:6px;
-  max-width:420px;width:100%;margin:4px 0;
-}
-.feat-line{
-  font-size:14px;color:var(--text);padding:7px 12px;
-  border-left:2px solid var(--amber-d);background:var(--surf);border-radius:0 3px 3px 0;
-}
-.feat-line strong{color:var(--amber)}
-.start-btn{
-  padding:13px 44px;font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;
-  letter-spacing:.1em;cursor:pointer;border:2px solid var(--amber);border-radius:3px;
-  background:transparent;color:var(--amber);text-transform:uppercase;
-  transition:background .2s,color .2s,box-shadow .2s;margin-top:6px;
-}
-.start-btn:hover{background:var(--amber);color:var(--bg);box-shadow:0 0 28px rgba(240,165,0,.28)}
-.calib-msg{
-  font-family:'Share Tech Mono',monospace;font-size:11px;
-  color:var(--muted);height:18px;
-}
+.card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top left,var(--glow-color,transparent) 0%,transparent 65%);opacity:0;transition:opacity .3s;pointer-events:none;}
+.card-a{--glow-color:rgba(232,102,42,.08)}
+.card-b{--glow-color:rgba(91,141,217,.08)}
+.card:hover{transform:translateY(-3px)}
+.card:hover::before{opacity:1}
+.card-tag{position:absolute;top:16px;right:16px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;padding:3px 8px;border-radius:20px;border:1px solid;}
+.tag-now{border-color:var(--green);color:var(--green);background:rgba(93,186,106,.1)}
+.tag-core{border-color:var(--gold);color:var(--gold);background:rgba(212,160,23,.1)}
+.card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid var(--bord2);background:var(--surf2);}
+.card-head{display:flex;align-items:flex-start;gap:14px}
+.card-titles{display:flex;flex-direction:column;gap:4px;padding-top:2px}
+.card-name{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.06em;color:var(--cream);line-height:1;}
+.card-file{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--muted);}
+.card-desc{font-size:13px;line-height:1.65;color:var(--muted);border-top:1px solid var(--bord);padding-top:14px;}
+.card-desc strong{color:var(--text)}
+.card-feats{display:flex;flex-wrap:wrap;gap:6px}
+.feat{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;padding:4px 9px;border-radius:20px;border:1px solid var(--bord2);color:var(--muted);background:var(--dim);}
+.card-btn{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:6px;border:1px solid;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.1em;cursor:pointer;transition:all .2s;background:transparent;width:100%;}
+.btn-a{border-color:var(--ember);color:var(--ember)}
+.btn-a:hover{background:var(--ember);color:var(--bg)}
+.btn-b{border-color:var(--blue);color:var(--blue)}
+.btn-b:hover{background:var(--blue);color:var(--bg)}
+.btn-arrow{font-size:16px;transition:transform .2s}
+.card-btn:hover .btn-arrow{transform:translateX(4px)}
+.phase-strip{width:100%;display:flex;gap:0;border:1px solid var(--bord);border-radius:8px;overflow:hidden;}
+.phase{flex:1;padding:10px 8px;text-align:center;background:var(--surf);border-right:1px solid var(--bord);display:flex;flex-direction:column;gap:4px;}
+.phase:last-child{border-right:none}
+.phase-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.08em;}
+.phase-txt{font-size:12px;font-weight:700;color:var(--text)}
+.phase.now{background:rgba(232,102,42,.07)}
+.phase.now .phase-txt{color:var(--ember)}
+.phase.now .phase-num{color:var(--ember)}
+.footer{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;text-align:center;margin-top:-16px;}
 </style>
 </head>
 <body>
-
-<!-- ── Start overlay ── -->
-<div class="overlay" id="overlay">
-  <div class="ov-title">배음 분석기 PRO</div>
-  <div class="ov-sub">VOCAL HARMONIC ANALYZER · v3.0</div>
-  <div class="feat-grid">
-    <div class="feat-line"><strong>YIN 알고리즘</strong> — 보컬 특화 정밀 음고 감지 (C1~C7)</div>
-    <div class="feat-line"><strong>동적 노이즈 게이트</strong> — 시작 시 주변 소음 자동 보정</div>
-    <div class="feat-line"><strong>HNR 성대 접촉 밀도</strong> — 배음/노이즈 에너지 비율 산출</div>
-    <div class="feat-line"><strong>배음렬 개별 에너지</strong> — H1~H8 실시간 표시</div>
-    <div class="feat-line"><strong>오디오 버스 격리</strong> — 타 앱 출력에 무간섭</div>
+<div class="wrap">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+    <div class="site-eyebrow">Personal Vocal Training Suite</div>
+    <div class="site-title">VOCAL<span>LAB</span></div>
+    <div class="site-sub">도구를 선택하세요</div>
   </div>
-  <button class="start-btn" id="startBtn">마이크 연결 및 시작</button>
-  <div class="calib-msg" id="calibMsg"></div>
-</div>
-
-<!-- ── Header ── -->
-<div class="hdr">
-  <div class="hdr-title">VOCAL HARMONIC ANALYZER PRO</div>
-  <div class="hdr-right">
-    <div class="status-pill">
-      <div class="dot" id="statusDot"></div>
-      <span id="statusTxt">대기 중</span>
+  <div class="divider"></div>
+  <div class="phase-strip">
+    <div class="phase now">
+      <div class="phase-num">PHASE 1 · 현재</div>
+      <div class="phase-txt">믹스보이스 확립</div>
+    </div>
+    <div class="phase">
+      <div class="phase-num">PHASE 2</div>
+      <div class="phase-txt">음정·배음 정밀화</div>
+    </div>
+    <div class="phase">
+      <div class="phase-num">PHASE 3</div>
+      <div class="phase-txt">레퍼토리 적용</div>
     </div>
   </div>
-</div>
-
-<!-- ── Main ── -->
-<div class="main">
-
-  <!-- Left: Tuner -->
-  <div class="p-left">
-    <div class="plabel">음정 / PITCH</div>
-
-    <div class="dial-wrap">
-      <div id="dialTape"></div>
-      <div class="dial-hairline"></div>
-      <div class="dial-dot"></div>
-    </div>
-
-    <div class="cents-wrap">
-      <div class="cents-num" id="centsNum">--</div>
-      <div class="cents-lbl">CENTS</div>
-      <div class="cents-track">
-        <div class="cents-center"></div>
-        <div class="cents-fill" id="centsFill" style="left:50%;width:0%"></div>
-      </div>
-    </div>
-
-    <div style="width:100%">
-      <div class="plabel">감지 주파수</div>
-      <div class="freq-readout" id="freqOut">--- Hz</div>
-    </div>
-  </div>
-
-  <!-- Centre: Spectrum + Waveform -->
-  <div class="p-centre">
-    <div class="spec-wrap">
-      <canvas id="specCanvas"></canvas>
-    </div>
-    <div class="wave-strip">
-      <canvas id="waveCanvas"></canvas>
-    </div>
-  </div>
-
-  <!-- Right: Metrics -->
-  <div class="p-right">
-    <div class="plabel">분석 지표</div>
-
-    <div class="mcard">
-      <div class="mname">성대 접촉 밀도 HNR</div>
-      <div class="mval" id="hnrVal">--</div>
-      <div class="munit">dB · 높을수록 안정</div>
-      <div class="gauge-track"><div class="gauge-fill" id="hnrGauge" style="background:var(--green)"></div></div>
-    </div>
-
-    <div class="mcard">
-      <div class="mname">음고 안정도</div>
-      <div class="mval amber" id="stabVal">--</div>
-      <div class="munit">% · 편차 기반 산출</div>
-      <div class="gauge-track"><div class="gauge-fill" id="stabGauge" style="background:var(--amber)"></div></div>
-    </div>
-
-    <div class="mcard">
-      <div class="mname">배음렬 에너지 H1–H8</div>
-      <div class="harm-list" id="harmList"></div>
-    </div>
-
-    <div class="mcard">
-      <div class="mname">노이즈 플로어</div>
-      <div class="mval blue" id="noiseVal">--</div>
-      <div class="munit">RMS 기준치</div>
-    </div>
-  </div>
-</div>
-
-<!-- ── Controls ── -->
-<div class="ctrl-bar">
-  <button class="btn btn-red" id="stopBtn" style="display:none">■ 정지</button>
-  <div class="vtoggle">
-    <button class="vbtn on" id="btnSpec">스펙트럼</button>
-    <button class="vbtn" id="btnWfall">워터폴</button>
-  </div>
-  <div class="ctrl-msg" id="ctrlMsg">마이크를 연결하고 발성을 시작하세요.</div>
-</div>
-
-<script>
-// ═══════════════════════════════════════
-//  CONSTANTS
-// ═══════════════════════════════════════
-const NOTE_STR = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-const START_NOTE = 24;  // C1
-const END_NOTE   = 96;  // C7
-const PPNote     = 40;  // px per note in dial
-const CENTER_Y   = 115; // px from top to hairline
-
-const FFT_SIZE    = 8192;
-const MAX_VIZ_HZ  = 6000;
-const HISTORY_SZ  = 25;
-const CALIB_MS    = 1800;
-
-// ═══════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════
-let audioCtx = null, analyser = null, source = null, stream = null;
-let byteFreq, floatTime;
-let raf = null, isRunning = false;
-
-let smoothNote = 0, pitchActive = false, noSignalN = 0;
-let detectedPitch = -1;
-let pitchHistory = [];
-let harmonicSmooth = new Float32Array(8);
-
-let noiseFloor = 0.008; // dynamic noise gate threshold (RMS)
-let calSum = 0, calN = 0, calibrating = false;
-
-let viewMode = 'spectrum';  // 'spectrum' | 'waterfall'
-let waterfallRows = [];
-
-// ═══════════════════════════════════════
-//  DOM INIT
-// ═══════════════════════════════════════
-function initDial() {
-  const tape = document.getElementById('dialTape');
-  tape.innerHTML = '';
-  for (let i = START_NOTE; i <= END_NOTE; i++) {
-    const d = document.createElement('div');
-    d.className = 'ntick' + (i % 12 === 0 ? ' oct' : '');
-    d.id = 'nt' + i;
-    d.textContent = NOTE_STR[i % 12] + (Math.floor(i / 12) - 1);
-    d.style.top = `${(END_NOTE - i) * PPNote}px`;
-    tape.appendChild(d);
-  }
-}
-initDial();
-
-function initHarms() {
-  const list = document.getElementById('harmList');
-  list.innerHTML = '';
-  for (let i = 1; i <= 8; i++) {
-    const hue = 200 + i * 14;
-    list.insertAdjacentHTML('beforeend', `
-      <div class="harm-row">
-        <div class="harm-lbl">H${i}</div>
-        <div class="harm-track">
-          <div class="harm-fill" id="hf${i}" style="width:0%;background:hsl(${hue},70%,55%)"></div>
+  <div class="cards">
+    <a class="card card-a" href="mix-trainer.html">
+      <div class="card-tag tag-now">▶ 지금 필요</div>
+      <div class="card-head">
+        <div class="card-icon">🎚</div>
+        <div class="card-titles">
+          <div class="card-name">믹스보이스<br>트레이너</div>
+          <div class="card-file">mix-trainer.html</div>
         </div>
-        <div class="harm-pct" id="hp${i}">0%</div>
-      </div>`);
-  }
-}
-initHarms();
-
-// ═══════════════════════════════════════
-//  YIN PITCH DETECTION
-// ═══════════════════════════════════════
-function yinDetect(buf, sr) {
-  const len   = buf.length;
-  const half  = len >> 1;
-  const minT  = Math.ceil(sr / 2000);   // max ~2000 Hz
-  const maxT  = Math.min(half - 1, Math.floor(sr / 40)); // min ~40 Hz
-
-  // RMS check against dynamic noise floor
-  let rms = 0;
-  for (let i = 0; i < len; i++) rms += buf[i] * buf[i];
-  rms = Math.sqrt(rms / len);
-  if (rms < noiseFloor * 1.6) return -1;
-
-  // Step 1 + 2: Cumulative mean normalised difference function
-  const d = new Float32Array(maxT + 1);
-  let runSum = 0;
-  d[0] = 1;
-  for (let tau = 1; tau <= maxT; tau++) {
-    let s = 0;
-    for (let j = 0; j < half; j++) {
-      const diff = buf[j] - buf[j + tau];
-      s += diff * diff;
-    }
-    d[tau] = s;
-    runSum += s;
-    d[tau] = runSum > 0 ? s * tau / runSum : 1;
-  }
-
-  // Step 3: Absolute threshold search
-  const THRESH = 0.13;
-  let tau = minT;
-  while (tau <= maxT) {
-    if (d[tau] < THRESH) {
-      while (tau + 1 <= maxT && d[tau + 1] < d[tau]) tau++;
-      return sr / parabInt(d, tau);
-    }
-    tau++;
-  }
-
-  // Fallback: best minimum below softer threshold
-  let bestVal = 1, bestTau = -1;
-  for (let i = minT; i <= maxT; i++) {
-    if (d[i] < bestVal) { bestVal = d[i]; bestTau = i; }
-  }
-  return bestVal < 0.4 && bestTau > 0 ? sr / parabInt(d, bestTau) : -1;
-}
-
-function parabInt(arr, x) {
-  if (x < 1 || x >= arr.length - 1) return x;
-  const a = arr[x-1], b = arr[x], c = arr[x+1];
-  const denom = 2*b - a - c;
-  return denom === 0 ? x : x + (c - a) / (2 * denom);
-}
-
-// ═══════════════════════════════════════
-//  HNR CALCULATION
-// ═══════════════════════════════════════
-function calcHNR(fundHz, byteArr, binCount, sr) {
-  if (fundHz <= 0) return null;
-  const binHz = sr / (binCount * 2);
-  const mask  = new Uint8Array(binCount);
-
-  // Mark bins belonging to harmonics (±5% window)
-  for (let h = 1; h <= 30; h++) {
-    const freq = fundHz * h;
-    if (freq > sr / 2) break;
-    const ctr = Math.round(freq / binHz);
-    const r   = Math.max(2, Math.round(ctr * 0.05));
-    for (let b = Math.max(0, ctr-r); b <= Math.min(binCount-1, ctr+r); b++) mask[b] = 1;
-  }
-
-  let hE = 0, nE = 0;
-  for (let b = 0; b < binCount; b++) {
-    const v = (byteArr[b] / 255) ** 2;
-    if (mask[b]) hE += v; else nE += v;
-  }
-  if (nE < 1e-12) return 30;
-  return Math.min(30, 10 * Math.log10(hE / (nE + 1e-12)));
-}
-
-// ═══════════════════════════════════════
-//  HARMONIC ENERGY PER PARTIAL
-// ═══════════════════════════════════════
-function getHarmonics(fundHz, byteArr, binCount, sr) {
-  const binHz = sr / (binCount * 2);
-  const out = new Float32Array(8);
-  for (let h = 1; h <= 8; h++) {
-    const freq = fundHz * h;
-    if (freq > sr / 2) break;
-    const ctr = Math.round(freq / binHz);
-    const r   = Math.max(2, Math.round(ctr * 0.06));
-    let peak = 0;
-    for (let b = Math.max(0, ctr-r); b <= Math.min(binCount-1, ctr+r); b++) {
-      if (byteArr[b] > peak) peak = byteArr[b];
-    }
-    out[h-1] = peak / 255;
-  }
-  return out;
-}
-
-// ═══════════════════════════════════════
-//  AUDIO SETUP
-// ═══════════════════════════════════════
-document.getElementById('startBtn').onclick = async () => {
-  const msg = document.getElementById('calibMsg');
-  try {
-    // Tear down any previous context cleanly
-    await teardown();
-
-    // Mic request — strict flags to prevent system audio interference
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation:  false,
-        autoGainControl:   false,
-        noiseSuppression:  false,
-        channelCount:      1,
-      }
-    });
-
-    // Isolated AudioContext — source goes ONLY to analyser, never to destination
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)({
-      sampleRate: 44100,
-      latencyHint: 'interactive'
-    });
-    analyser  = audioCtx.createAnalyser();
-    analyser.fftSize               = FFT_SIZE;
-    analyser.smoothingTimeConstant = 0.78;
-    analyser.minDecibels           = -90;
-    analyser.maxDecibels           = -10;
-
-    source = audioCtx.createMediaStreamSource(stream);
-    source.connect(analyser);
-    // ← intentionally NOT connecting to audioCtx.destination
-
-    byteFreq  = new Uint8Array(analyser.frequencyBinCount);
-    floatTime = new Float32Array(analyser.fftSize);
-
-    // Calibrate noise floor
-    msg.textContent = '🔇 주변 소음 측정 중 — 잠시 조용히 해주세요…';
-    calibrating = true; calSum = 0; calN = 0;
-    isRunning = true;
-    loop(); // start loop during calibration too
-
-    setTimeout(() => {
-      calibrating = false;
-      noiseFloor = Math.max(0.004, Math.sqrt(calSum / Math.max(1, calN)));
-      msg.textContent = '';
-      document.getElementById('overlay').style.display = 'none';
-      document.getElementById('stopBtn').style.display = '';
-      document.getElementById('statusDot').classList.add('on');
-      document.getElementById('statusTxt').textContent = '분석 중';
-      document.getElementById('noiseVal').textContent =
-        (noiseFloor * 1000).toFixed(2) + 'e-3';
-    }, CALIB_MS);
-
-  } catch (e) {
-    msg.textContent = '⚠ 마이크 권한이 거부됐습니다. 브라우저 설정을 확인하세요.';
-    console.error(e);
-  }
-};
-
-async function teardown() {
-  isRunning = false;
-  if (raf) { cancelAnimationFrame(raf); raf = null; }
-  if (source) { try { source.disconnect(); } catch(_){} source = null; }
-  if (audioCtx) { try { await audioCtx.close(); } catch(_){} audioCtx = null; }
-  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-}
-
-document.getElementById('stopBtn').onclick = async () => {
-  await teardown();
-  resetUI();
-  document.getElementById('overlay').style.display = 'flex';
-  document.getElementById('stopBtn').style.display = 'none';
-  document.getElementById('statusDot').classList.remove('on');
-  document.getElementById('statusTxt').textContent = '대기 중';
-};
-
-function resetUI() {
-  pitchActive = false; noSignalN = 0; pitchHistory = []; detectedPitch = -1;
-  harmonicSmooth.fill(0);
-  document.getElementById('centsNum').textContent = '--';
-  document.getElementById('centsNum').style.color = 'var(--amber)';
-  document.getElementById('centsFill').style.width = '0%';
-  document.getElementById('freqOut').textContent = '--- Hz';
-  document.getElementById('hnrVal').textContent = '--';
-  document.getElementById('stabVal').textContent = '--';
-  document.getElementById('noiseVal').textContent = '--';
-  document.getElementById('hnrGauge').style.width = '0%';
-  document.getElementById('stabGauge').style.width = '0%';
-  document.getElementById('ctrlMsg').textContent = '마이크를 연결하고 발성을 시작하세요.';
-  for (let i = 1; i <= 8; i++) {
-    document.getElementById('hf'+i).style.width = '0%';
-    document.getElementById('hp'+i).textContent = '0%';
-  }
-}
-
-// ═══════════════════════════════════════
-//  VIEW TOGGLE
-// ═══════════════════════════════════════
-document.getElementById('btnSpec').onclick = () => {
-  viewMode = 'spectrum'; waterfallRows = [];
-  document.getElementById('btnSpec').classList.add('on');
-  document.getElementById('btnWfall').classList.remove('on');
-};
-document.getElementById('btnWfall').onclick = () => {
-  viewMode = 'waterfall';
-  document.getElementById('btnSpec').classList.remove('on');
-  document.getElementById('btnWfall').classList.add('on');
-};
-
-// ═══════════════════════════════════════
-//  CANVASES
-// ═══════════════════════════════════════
-const specCv  = document.getElementById('specCanvas');
-const specCtx = specCv.getContext('2d');
-const waveCv  = document.getElementById('waveCanvas');
-const waveCtx = waveCv.getContext('2d');
-const DPR = window.devicePixelRatio || 1;
-
-function resizeCvs() {
-  const se = specCv.parentElement;
-  specCv.width  = se.clientWidth  * DPR;
-  specCv.height = se.clientHeight * DPR;
-  const we = waveCv.parentElement;
-  waveCv.width  = we.clientWidth  * DPR;
-  waveCv.height = we.clientHeight * DPR;
-}
-window.addEventListener('resize', resizeCvs);
-resizeCvs();
-
-// ═══════════════════════════════════════
-//  DRAW
-// ═══════════════════════════════════════
-// Cached tick elements
-const tickEls = {};
-for (let i = START_NOTE; i <= END_NOTE; i++) tickEls[i] = document.getElementById('nt'+i);
-
-function loop() {
-  if (!isRunning) return;
-  raf = requestAnimationFrame(loop);
-
-  analyser.getByteFrequencyData(byteFreq);
-  analyser.getFloatTimeDomainData(floatTime);
-
-  // Noise calibration
-  if (calibrating) {
-    let s = 0;
-    for (let i = 0; i < floatTime.length; i++) s += floatTime[i]*floatTime[i];
-    calSum += s / floatTime.length;
-    calN++;
-    drawSpectrum();
-    drawWaveform();
-    return;
-  }
-
-  // ── Pitch detection ──
-  const pitch = yinDetect(floatTime, audioCtx.sampleRate);
-
-  if (pitch > 0 && pitch >= 32 && pitch <= 2000) {
-    detectedPitch = pitch;
-    noSignalN = 0;
-    const fNote = 12 * Math.log2(pitch / 440) + 69;
-
-    if (!pitchActive) { smoothNote = fNote; pitchActive = true; }
-    else              { smoothNote = smoothNote * 0.88 + fNote * 0.12; }
-
-    pitchHistory.push(fNote);
-    if (pitchHistory.length > HISTORY_SZ) pitchHistory.shift();
-
-    const nearest   = Math.round(smoothNote);
-    const centsDiff = Math.round((smoothNote - nearest) * 100);
-    const inTune    = Math.abs(centsDiff) <= 10;
-
-    // Dial
-    const yOff = CENTER_Y - (END_NOTE - smoothNote) * PPNote;
-    document.getElementById('dialTape').style.transform = `translateY(${yOff}px)`;
-
-    // Tick colours
-    for (let i = START_NOTE; i <= END_NOTE; i++) {
-      const el = tickEls[i];
-      if (!el) continue;
-      if (i === nearest) {
-        el.style.color    = inTune ? 'var(--green)' : 'var(--amber)';
-        el.style.fontSize = '28px';
-      } else {
-        el.style.color    = 'var(--border2)';
-        el.style.fontSize = '18px';
-      }
-    }
-
-    // Cents display
-    const centsCol = inTune ? 'var(--green)' : Math.abs(centsDiff)>30 ? 'var(--red)' : 'var(--amber)';
-    const centsEl  = document.getElementById('centsNum');
-    centsEl.textContent = (centsDiff > 0 ? '+' : '') + centsDiff;
-    centsEl.style.color = centsCol;
-
-    // Cents bar (centre-anchored)
-    const pct = Math.min(50, Math.abs(centsDiff) / 100 * 100);
-    const fill = document.getElementById('centsFill');
-    fill.style.background = centsCol;
-    if (centsDiff >= 0) { fill.style.left = '50%'; fill.style.width = pct + '%'; }
-    else                { fill.style.left = (50 - pct) + '%'; fill.style.width = pct + '%'; }
-
-    // Freq
-    document.getElementById('freqOut').textContent = pitch.toFixed(1) + ' Hz';
-
-    // Stability (std-dev of recent pitch in cents)
-    if (pitchHistory.length >= 5) {
-      const mean = pitchHistory.reduce((a,b)=>a+b,0) / pitchHistory.length;
-      const std  = Math.sqrt(pitchHistory.reduce((a,b)=>a+(b-mean)**2,0) / pitchHistory.length) * 100;
-      const stab = Math.round(Math.max(0, Math.min(100, 100 - std * 1.8)));
-      const sEl  = document.getElementById('stabVal');
-      sEl.textContent = stab;
-      sEl.className   = 'mval' + (stab>=75 ? '' : stab>=45 ? ' amber' : ' red');
-      document.getElementById('stabGauge').style.width = stab + '%';
-      document.getElementById('stabGauge').style.background =
-        stab>=75 ? 'var(--green)' : stab>=45 ? 'var(--amber)' : 'var(--red)';
-    }
-
-    // HNR
-    const hnr = calcHNR(pitch, byteFreq, analyser.frequencyBinCount, audioCtx.sampleRate);
-    if (hnr !== null) {
-      const hnrEl = document.getElementById('hnrVal');
-      hnrEl.textContent = Math.max(0, hnr).toFixed(1);
-      hnrEl.className   = 'mval' + (hnr>=18 ? '' : hnr>=9 ? ' amber' : ' red');
-      document.getElementById('hnrGauge').style.width = Math.min(100, hnr/30*100) + '%';
-      document.getElementById('hnrGauge').style.background =
-        hnr>=18 ? 'var(--green)' : hnr>=9 ? 'var(--amber)' : 'var(--red)';
-    }
-
-    // Harmonics
-    const rawH = getHarmonics(pitch, byteFreq, analyser.frequencyBinCount, audioCtx.sampleRate);
-    for (let i = 0; i < 8; i++) {
-      harmonicSmooth[i] = harmonicSmooth[i] * 0.82 + rawH[i] * 0.18;
-      const pct2 = Math.round(harmonicSmooth[i] * 100);
-      document.getElementById('hf'+(i+1)).style.width = pct2 + '%';
-      document.getElementById('hp'+(i+1)).textContent = pct2 + '%';
-    }
-
-    // Status
-    document.getElementById('ctrlMsg').textContent =
-      `${NOTE_STR[nearest%12]}${Math.floor(nearest/12)-1}  ·  ${pitch.toFixed(1)} Hz  ·  ${inTune ? '✓ 인 튠' : `오차 ${centsDiff > 0 ? '+' : ''}${centsDiff}¢`}`;
-
-  } else {
-    noSignalN++;
-    if (noSignalN > 22) {
-      if (pitchActive) {
-        pitchActive = false;
-        detectedPitch = -1;
-        document.getElementById('centsNum').textContent = '--';
-        document.getElementById('centsNum').style.color = 'var(--amber)';
-        document.getElementById('centsFill').style.width = '0%';
-        document.getElementById('freqOut').textContent = '--- Hz';
-        document.getElementById('ctrlMsg').textContent = '신호 대기 중…';
-        pitchHistory = [];
-        // Reset ticks
-        for (let i = START_NOTE; i <= END_NOTE; i++) {
-          const el = tickEls[i];
-          if (el) { el.style.color='var(--border2)'; el.style.fontSize='18px'; }
-        }
-      }
-    }
-  }
-
-  drawSpectrum();
-  drawWaveform();
-}
-
-// ─── Spectrum / Waterfall ───
-function drawSpectrum() {
-  const W = specCv.width, H = specCv.height;
-  const binCount = analyser.frequencyBinCount;
-  const sr       = audioCtx.sampleRate;
-  const binHz    = sr / (binCount * 2);
-  const maxBin   = Math.min(binCount - 1, Math.round(MAX_VIZ_HZ / binHz));
-
-  if (viewMode === 'waterfall') {
-    // ── Waterfall ──
-    const row = byteFreq.slice(0, maxBin);
-    waterfallRows.unshift(row);
-    const maxRows = Math.ceil(H);
-    if (waterfallRows.length > maxRows) waterfallRows.length = maxRows;
-
-    specCtx.fillStyle = '#000';
-    specCtx.fillRect(0, 0, W, H);
-
-    const rowH = H / Math.max(40, waterfallRows.length);
-    const barW = W / maxBin;
-    waterfallRows.forEach((r, ri) => {
-      for (let b = 0; b < r.length; b++) {
-        const v = r[b] / 255;
-        specCtx.fillStyle = `hsl(${200 + v*80},85%,${v*55}%)`;
-        specCtx.fillRect(b * barW, ri * rowH, barW, rowH + 0.5);
-      }
-    });
-
-  } else {
-    // ── Spectrum ──
-    specCtx.fillStyle = '#000';
-    specCtx.fillRect(0, 0, W, H);
-
-    // Grid
-    specCtx.strokeStyle = 'rgba(255,255,255,0.035)';
-    specCtx.lineWidth = 1;
-    for (let g = 1; g < 6; g++) {
-      const gy = (g / 6) * H;
-      specCtx.beginPath(); specCtx.moveTo(0,gy); specCtx.lineTo(W,gy); specCtx.stroke();
-    }
-
-    // Freq grid lines
-    [100,200,500,1000,2000,4000].forEach(f => {
-      const x = (f / binHz / maxBin) * W;
-      if (x < 0 || x > W) return;
-      specCtx.strokeStyle = 'rgba(255,255,255,0.06)';
-      specCtx.beginPath(); specCtx.moveTo(x,0); specCtx.lineTo(x,H); specCtx.stroke();
-      specCtx.fillStyle = 'rgba(255,255,255,0.18)';
-      specCtx.font = `${Math.round(9*DPR)}px 'Share Tech Mono',monospace`;
-      specCtx.fillText(f>=1000 ? (f/1000)+'k' : f, x+3, H - 6*DPR);
-    });
-
-    // Bars
-    const barW = W / maxBin;
-    for (let b = 0; b < maxBin; b++) {
-      const v  = byteFreq[b] / 255;
-      const bh = v * H;
-      if (bh < 1) continue;
-      const hue = 195 + v * 75;
-      const lit  = 18 + v * 38;
-      const g = specCtx.createLinearGradient(0, H, 0, H - bh);
-      g.addColorStop(0, `hsla(${hue},80%,${lit*.55}%,.85)`);
-      g.addColorStop(1, `hsla(${hue+15},90%,${lit}%,1)`);
-      specCtx.fillStyle = g;
-      specCtx.fillRect(b * barW, H - bh, Math.max(1, barW - .5), bh);
-    }
-
-    // Harmonic marker lines (when pitch active)
-    if (pitchActive && detectedPitch > 0) {
-      specCtx.setLineDash([4*DPR, 4*DPR]);
-      for (let h = 1; h <= 8; h++) {
-        const freq = detectedPitch * h;
-        if (freq > MAX_VIZ_HZ) break;
-        const bx = freq / binHz;
-        const x  = (bx / maxBin) * W;
-        const al = Math.max(0.15, 1 - (h-1) * 0.11);
-        specCtx.strokeStyle = `rgba(240,165,0,${al})`;
-        specCtx.lineWidth   = DPR;
-        specCtx.beginPath(); specCtx.moveTo(x,0); specCtx.lineTo(x,H); specCtx.stroke();
-        if (h <= 5) {
-          specCtx.fillStyle = `rgba(240,165,0,${al})`;
-          specCtx.font = `${Math.round(9*DPR)}px 'Share Tech Mono',monospace`;
-          specCtx.fillText('H'+h, x+3*DPR, 14*DPR);
-        }
-      }
-      specCtx.setLineDash([]);
-    }
-  }
-}
-
-// ─── Waveform ───
-function drawWaveform() {
-  const W = waveCv.width, H = waveCv.height;
-  const buf = floatTime;
-
-  waveCtx.fillStyle = '#000';
-  waveCtx.fillRect(0, 0, W, H);
-
-  // Centre line
-  waveCtx.strokeStyle = 'rgba(255,255,255,0.06)';
-  waveCtx.lineWidth = 1;
-  waveCtx.beginPath();
-  waveCtx.moveTo(0, H/2); waveCtx.lineTo(W, H/2);
-  waveCtx.stroke();
-
-  // Wave — skip samples for performance (draw ~2000 points max)
-  const step = Math.max(1, Math.floor(buf.length / (W / DPR)));
-  waveCtx.beginPath();
-  waveCtx.strokeStyle = pitchActive ? 'rgba(240,165,0,.8)' : 'rgba(90,100,130,.5)';
-  waveCtx.lineWidth   = DPR;
-  let first = true;
-  for (let i = 0; i < buf.length; i += step) {
-    const x = (i / buf.length) * W;
-    const y = (buf[i] * .48 + .5) * H;
-    if (first) { waveCtx.moveTo(x,y); first = false; }
-    else        waveCtx.lineTo(x, y);
-  }
-  waveCtx.stroke();
-}
-</script>
+      </div>
+      <div class="card-desc">
+        C5~A5 고음 품질 개선을 위한 도구.<br>
+        <strong>H1-H2 비율</strong>로 흉성·두성 밸런스를 실시간 표시하고,
+        허밍→열린소리 전환 훈련을 가이드합니다.
+      </div>
+      <div class="card-feats">
+        <span class="feat">H1-H2 믹스 게이지</span>
+        <span class="feat">싱어즈 포먼트</span>
+        <span class="feat">전환 훈련 모드</span>
+        <span class="feat">실시간 진단 코멘트</span>
+      </div>
+      <button class="card-btn btn-a" onclick="event.preventDefault();location.href='mix-trainer.html'">
+        <span>실행하기</span><span class="btn-arrow">→</span>
+      </button>
+    </a>
+    <a class="card card-b" href="harmonic.html">
+      <div class="card-tag tag-core">나중에 활용</div>
+      <div class="card-head">
+        <div class="card-icon">📊</div>
+        <div class="card-titles">
+          <div class="card-name">배음<br>분석기</div>
+          <div class="card-file">harmonic.html</div>
+        </div>
+      </div>
+      <div class="card-desc">
+        전반적인 음성 품질 모니터링 도구.<br>
+        믹스보이스가 잡힌 후 <strong>음정 정확도·HNR·배음 분포</strong>를
+        점검하는 데 사용합니다.
+      </div>
+      <div class="card-feats">
+        <span class="feat">YIN 음고 추적</span>
+        <span class="feat">HNR 성대 접촉</span>
+        <span class="feat">H1~H8 배음열</span>
+        <span class="feat">스펙트럼·워터폴</span>
+      </div>
+      <button class="card-btn btn-b" onclick="event.preventDefault();location.href='harmonic.html'">
+        <span>실행하기</span><span class="btn-arrow">→</span>
+      </button>
+    </a>
+  </div>
+  <div class="footer">두 도구 모두 마이크 입력만 사용 · 오디오 출력 없음 · 타 앱 무간섭</div>
+</div>
 </body>
 </html>
