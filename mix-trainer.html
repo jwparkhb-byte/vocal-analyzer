@@ -2,142 +2,237 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>믹스보이스 트레이너</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#07090d;--surf:#0f1218;--surf2:#171d26;--bord:#1e2530;--bord2:#2d3748;
   --text:#c9d1d9;--muted:#4a5568;--ember:#e8662a;--gold:#d4a017;--gold2:#f0c040;
   --cream:#f0e6d3;--green:#3fb950;--blue:#58a6ff;--red:#f85149;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;display:flex;flex-direction:column;}
-.overlay{position:fixed;inset:0;background:rgba(7,9,13,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:200;padding:24px;}
-.ov-eye{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.22em;color:var(--ember);text-transform:uppercase;}
-.ov-title{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:.06em;color:var(--cream);line-height:1;text-align:center;}
-.ov-cards{display:flex;flex-direction:column;gap:7px;width:100%;max-width:400px;}
-.ov-card{background:var(--surf);border:1px solid var(--bord);border-radius:5px;padding:9px 14px;font-size:13px;line-height:1.5;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{color:var(--text);font-family:'Noto Sans KR',sans-serif;display:flex;flex-direction:column;}
+
+/* ── Overlay ── */
+.overlay{
+  position:fixed;inset:0;background:rgba(7,9,13,.98);
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  gap:12px;z-index:200;padding:20px 18px;overflow-y:auto;
+}
+.ov-eye{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--ember);text-transform:uppercase;margin-top:8px;}
+.ov-title{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:.06em;color:var(--cream);line-height:1;text-align:center;}
+.ov-card{background:var(--surf);border:1px solid var(--bord);border-radius:6px;padding:10px 14px;font-size:13px;line-height:1.5;width:100%;max-width:420px;}
 .ov-card strong{color:var(--gold)}
-.bt-warn{background:rgba(232,102,42,.08);border:1px solid rgba(232,102,42,.4);border-radius:5px;padding:10px 14px;width:100%;max-width:400px;}
-.bt-warn-t{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--ember);margin-bottom:5px;}
+.bt-warn{background:rgba(232,102,42,.08);border:1px solid rgba(232,102,42,.35);border-radius:6px;padding:10px 14px;width:100%;max-width:420px;}
+.bt-warn-t{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ember);margin-bottom:5px;}
 .bt-warn-b{font-size:12px;color:var(--muted);line-height:1.55;}
 .bt-warn-b strong{color:var(--text)}
-.start-btn{padding:13px 44px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.1em;cursor:pointer;border:2px solid var(--ember);border-radius:3px;background:transparent;color:var(--ember);transition:all .2s;margin-top:4px;}
-.start-btn:hover{background:var(--ember);color:var(--bg);}
-.calib-msg{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);height:18px;text-align:center;}
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;background:var(--surf);border-bottom:1px solid var(--bord);flex-shrink:0;}
-.hdr-title{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--ember);text-transform:uppercase;}
-.hdr-pill{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+.start-btn{
+  padding:14px 44px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.1em;
+  cursor:pointer;border:2px solid var(--ember);border-radius:4px;
+  background:transparent;color:var(--ember);transition:all .2s;
+}
+.start-btn:active{background:var(--ember);color:var(--bg);}
+.calib-msg{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);min-height:18px;text-align:center;}
+
+/* ── Header ── */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 12px;background:var(--surf);border-bottom:1px solid var(--bord);flex-shrink:0;
+}
+.hdr-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;color:var(--ember);text-transform:uppercase;}
+.hdr-r{display:flex;align-items:center;gap:8px;}
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);transition:all .3s;}
-.live-dot.on{background:var(--green);box-shadow:0 0 7px var(--green);animation:pulse 2s infinite;}
+.live-dot.on{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-.spec-strip{height:52px;flex-shrink:0;position:relative;border-bottom:1px solid var(--bord);}
+.live-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+
+/* ── Spec strip ── */
+.spec-strip{height:44px;flex-shrink:0;position:relative;border-bottom:1px solid var(--bord);}
 #specCv{position:absolute;inset:0;width:100%;height:100%;}
-.main{flex:1;display:flex;overflow:hidden;}
-.col-left{width:192px;flex-shrink:0;background:var(--surf);border-right:1px solid var(--bord);display:flex;flex-direction:column;padding:12px 11px;gap:12px;overflow-y:auto;}
-.col-mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;overflow:hidden;padding:8px;}
-.col-right{width:192px;flex-shrink:0;background:var(--surf);border-left:1px solid var(--bord);display:flex;flex-direction:column;padding:12px 11px;gap:11px;overflow-y:auto;}
-.slabel{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;}
-.mcard{border:1px solid var(--bord);border-radius:4px;padding:9px;background:var(--bg);}
-.mname{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
-.mval{font-family:'DM Mono',monospace;font-size:24px;line-height:1;color:var(--green);transition:color .2s;}
+
+/* ── Scrollable content ── */
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px;display:flex;flex-direction:column;gap:10px;}
+
+/* ── Status bar ── */
+.status-bar{
+  background:var(--surf);border:1px solid var(--bord);border-radius:6px;
+  padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.note-display{display:flex;align-items:baseline;gap:8px;}
+.note-big{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--cream);line-height:1;}
+.note-hz{font-family:'DM Mono',monospace;font-size:14px;color:var(--gold);}
+.note-cents{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+.zone-badge{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;
+  padding:4px 10px;border-radius:20px;border:1px solid var(--bord2);
+  color:var(--muted);transition:all .3s;flex-shrink:0;
+}
+
+/* ── Gauge card ── */
+.gauge-card{background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:12px 10px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.gauge-labels{display:flex;justify-content:space-between;width:100%;padding:0 4px;font-family:'DM Mono',monospace;font-size:10px;}
+.gl-c{color:var(--red)}.gl-m{color:var(--gold);text-align:center;flex:1}.gl-h{color:var(--blue)}
+.h12-readout{text-align:center;}
+.h12-big{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:1;color:var(--cream);transition:color .3s;}
+.h12-unit{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;}
+.h12-zone{font-size:13px;font-weight:700;color:var(--muted);transition:color .3s;margin-top:2px;}
+
+/* ── Guide ── */
+.guide{
+  background:var(--surf);border:1px solid var(--bord);border-radius:8px;
+  padding:11px 13px;display:flex;align-items:flex-start;gap:9px;
+}
+.g-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.g-text{font-size:13px;line-height:1.6;color:var(--muted);}
+.g-text strong{color:var(--cream)}.g-text em{color:var(--gold);font-style:normal}
+
+/* ── Metrics grid ── */
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.mcard{background:var(--surf);border:1px solid var(--bord);border-radius:6px;padding:10px;}
+.mname{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
+.mval{font-family:'DM Mono',monospace;font-size:22px;line-height:1;color:var(--green);transition:color .2s;}
 .mval.amber{color:var(--gold)}.mval.red{color:var(--red)}.mval.blue{color:var(--blue)}
 .munit{font-size:9px;color:var(--muted);margin-top:2px;}
-.gtrak{height:4px;background:var(--surf2);border-radius:2px;margin-top:7px;overflow:hidden;}
+.gtrak{height:4px;background:var(--surf2);border-radius:2px;margin-top:8px;overflow:hidden;}
 .gfill{height:100%;border-radius:2px;transition:width .2s,background .2s;}
-.sf-trak{height:8px;background:var(--surf2);border-radius:4px;overflow:hidden;border:1px solid var(--bord);}
-.sf-fill{height:100%;border-radius:4px;transition:width .15s;}
+.mcard-full{grid-column:1/-1;}
+
+/* SF bar */
+.sf-trak{height:7px;background:var(--surf2);border-radius:4px;overflow:hidden;margin-top:6px;}
+.sf-fill{height:100%;border-radius:4px;transition:width .15s;background:linear-gradient(90deg,var(--ember),var(--gold2));}
 .sf-sub{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);margin-top:3px;}
-.h3sub{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
-.h3row{display:flex;align-items:center;gap:5px;}
-.h3lbl{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);width:16px;flex-shrink:0;}
-.h3trak{flex:1;height:5px;background:var(--surf2);border-radius:2px;overflow:hidden;}
-.h3fill{height:100%;border-radius:2px;transition:width .12s;}
-.gauge-sec{display:flex;flex-direction:column;align-items:center;gap:5px;}
-.glabels{display:flex;justify-content:space-between;width:300px;padding:0 8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;}
-.lc{color:var(--red)}.lm{color:var(--gold);text-align:center;flex:1}.lh{color:var(--blue)}
-.h12ro{text-align:center;}
-.h12big{font-family:'Bebas Neue',sans-serif;font-size:54px;line-height:1;color:var(--cream);transition:color .3s;}
-.h12unit{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;}
-.h12zone{font-size:12px;font-weight:700;color:var(--muted);transition:color .3s;margin-top:2px;}
-.note-row{display:flex;align-items:center;gap:14px;}
-.note-nm{font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--cream);line-height:1;}
-.note-dt{display:flex;flex-direction:column;gap:3px;}
-.note-fr{font-family:'DM Mono',monospace;font-size:13px;color:var(--gold);}
-.note-ct{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
-.guide{width:100%;max-width:360px;min-height:44px;padding:9px 13px;background:var(--surf);border:1px solid var(--bord);border-radius:6px;display:flex;align-items:flex-start;gap:8px;}
-.guide-icon{font-size:17px;flex-shrink:0;margin-top:1px;}
-.guide-text{font-size:12px;line-height:1.55;color:var(--muted);}
-.guide-text strong{color:var(--cream)}.guide-text em{color:var(--gold);font-style:normal}
-.rec-sec{border:1px solid var(--bord);border-radius:4px;padding:9px;background:var(--bg);}
-.rec-btns{display:flex;gap:4px;margin-top:7px;}
-.rbtn{flex:1;padding:5px 3px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.05em;cursor:pointer;border-radius:3px;border:1px solid;transition:all .15s;background:transparent;}
-.rb-rec{border-color:var(--red);color:var(--red);}.rb-rec:hover,.rb-rec.on{background:var(--red);color:#fff;}
-.rb-rec.on{animation:rb 1s infinite;}@keyframes rb{0%,100%{opacity:1}50%{opacity:.5}}
-.rb-good{border-color:var(--green);color:var(--green);}.rb-good:hover{background:var(--green);color:#000;}
-.rb-bad{border-color:var(--muted);color:var(--muted);}.rb-bad:hover{background:var(--muted);color:#000;}
-.rec-stat{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);margin-top:5px;}
-.clip-list{display:flex;flex-direction:column;gap:4px;margin-top:7px;max-height:130px;overflow-y:auto;}
-.clip{display:flex;align-items:center;gap:4px;padding:4px 6px;background:var(--surf2);border-radius:3px;border:1px solid var(--bord);}
-.ctag{font-family:'DM Mono',monospace;font-size:8px;padding:2px 4px;border-radius:2px;flex-shrink:0;}
-.ctag.good{background:rgba(63,185,80,.2);color:var(--green)}.ctag.bad{background:rgba(74,85,104,.3);color:var(--muted)}
-.cname{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.cplay{background:none;border:1px solid var(--bord2);border-radius:2px;color:var(--text);font-size:10px;cursor:pointer;padding:2px 5px;flex-shrink:0;transition:all .15s;}
-.cplay:hover{border-color:var(--gold);color:var(--gold);}
-.ctrl{flex-shrink:0;padding:8px 14px;border-top:1px solid var(--bord);background:var(--surf);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.mbtn{padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.07em;cursor:pointer;border:1px solid var(--bord2);background:var(--bg);color:var(--muted);border-radius:3px;transition:all .15s;}
+
+/* H bars */
+.hbars{display:flex;flex-direction:column;gap:5px;margin-top:6px;}
+.hrow{display:flex;align-items:center;gap:6px;}
+.hlbl{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);width:14px;flex-shrink:0;}
+.htrak{flex:1;height:6px;background:var(--surf2);border-radius:3px;overflow:hidden;}
+.hfill{height:100%;border-radius:3px;transition:width .12s;}
+
+/* ── Mode row ── */
+.mode-row{display:flex;gap:6px;}
+.mbtn{
+  flex:1;padding:9px 4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;
+  cursor:pointer;border:1px solid var(--bord2);background:var(--bg);color:var(--muted);
+  border-radius:4px;transition:all .15s;text-align:center;
+}
 .mbtn.on{background:var(--surf2);color:var(--cream);border-color:var(--muted);}
-.ibtn{padding:6px 14px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;border-radius:3px;border:1px solid;transition:all .15s;background:transparent;}
-.ib-stop{border-color:var(--ember);color:var(--ember);}.ib-stop:hover{background:var(--ember);color:var(--bg);}
-.ctrl-msg{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+
+/* ── Recording ── */
+.rec-card{background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:11px 12px;}
+.rec-btns{display:flex;gap:6px;margin-top:8px;}
+.rbtn{
+  flex:1;padding:10px 4px;font-family:'DM Mono',monospace;font-size:11px;
+  cursor:pointer;border-radius:4px;border:1px solid;transition:all .15s;background:transparent;
+}
+.rb-rec{border-color:var(--red);color:var(--red);}
+.rb-rec:active,.rb-rec.on{background:var(--red);color:#fff;}
+.rb-rec.on{animation:rb 1s infinite;}@keyframes rb{0%,100%{opacity:1}50%{opacity:.5}}
+.rb-good{border-color:var(--green);color:var(--green);}
+.rb-good:active{background:var(--green);color:#000;}
+.rb-bad{border-color:var(--muted);color:var(--muted);}
+.rb-bad:active{background:var(--muted);color:#000;}
+.rec-stat{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;}
+.clip-list{display:flex;flex-direction:column;gap:5px;margin-top:8px;}
+.clip{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--surf2);border-radius:4px;border:1px solid var(--bord);}
+.ctag{font-family:'DM Mono',monospace;font-size:9px;padding:2px 6px;border-radius:3px;flex-shrink:0;}
+.ctag.good{background:rgba(63,185,80,.2);color:var(--green)}.ctag.bad{background:rgba(74,85,104,.25);color:var(--muted)}
+.cname{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cplay{background:none;border:1px solid var(--bord2);border-radius:3px;color:var(--text);font-size:12px;cursor:pointer;padding:3px 8px;flex-shrink:0;}
+.cplay:active{border-color:var(--gold);color:var(--gold);}
+
+/* ── Bottom bar ── */
+.btmbar{
+  flex-shrink:0;padding:7px 12px;border-top:1px solid var(--bord);
+  background:var(--surf);display:flex;align-items:center;gap:8px;
+}
+.stop-btn{
+  padding:7px 16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;
+  cursor:pointer;border-radius:3px;border:1px solid var(--ember);
+  color:var(--ember);background:transparent;flex-shrink:0;
+}
+.stop-btn:active{background:var(--ember);color:var(--bg);}
+.btm-msg{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 </style>
 </head>
 <body>
+
+<!-- ── Overlay ── -->
 <div class="overlay" id="overlay">
-  <div class="ov-eye">Mix Voice Trainer v3.1 · Fixed H1-H2 + CPP + Recording</div>
-  <div class="ov-title">믹스보이스 트레이너</div>
+  <div class="ov-eye">Mix Voice Trainer v3.2</div>
+  <div class="ov-title">믹스보이스<br>트레이너</div>
+
   <div class="bt-warn">
-    <div class="bt-warn-t">⚠ 블루투스 사용 중이라면 읽어주세요</div>
-    <div class="bt-warn-b">마이크 연결 시 OS가 블루투스를 <strong>A2DP → HFP(통화용 협대역)</strong>으로 강제 전환합니다. 외부 출력 음질이 떨어지는 것은 이 때문이며 웹에서는 해결 불가합니다. <strong>유선 마이크 또는 USB 오디오 인터페이스를 권장합니다.</strong></div>
+    <div class="bt-warn-t">⚠ 블루투스 이어폰 사용 중이라면</div>
+    <div class="bt-warn-b">마이크 연결 시 OS가 블루투스를 <strong>통화용(HFP) 모드</strong>로 강제 전환합니다. 외부 출력 음질이 떨어지는 현상의 원인이며 웹에서는 해결 불가합니다. <strong>유선 마이크를 권장합니다.</strong></div>
   </div>
-  <div class="ov-cards">
-    <div class="ov-card">🔧 <strong>H1-H2 버그 수정</strong> — dB 이중 변환 오류 해결, 실제 스펙트럼 값 사용</div>
-    <div class="ov-card">👂 <strong>CPP 음질 점수</strong> — 청자 지각 연구 기반 객관 지표 (Cepstral Peak Prominence)</div>
-    <div class="ov-card">🎙 <strong>녹음 기능</strong> — 좋은/아쉬운 발성 저장 후 바로 재생 비교</div>
-  </div>
+
+  <div class="ov-card">🔧 <strong>H1-H2 버그 수정</strong> — dB 이중 변환 오류 해결</div>
+  <div class="ov-card">👂 <strong>CPP 음질 점수</strong> — 청자 지각 기반 객관 지표</div>
+  <div class="ov-card">🎙 <strong>녹음</strong> — 좋은/아쉬운 발성 저장 후 재생 비교</div>
+
   <button class="start-btn" id="startBtn">마이크 연결 시작</button>
   <div class="calib-msg" id="calibMsg"></div>
 </div>
 
+<!-- ── Header ── -->
 <div class="hdr">
   <div class="hdr-title">MIX VOICE TRAINER</div>
-  <div class="hdr-pill"><div class="live-dot" id="liveDot"></div><span id="liveTxt">대기 중</span></div>
+  <div class="hdr-r">
+    <div class="live-dot" id="liveDot"></div>
+    <span class="live-lbl" id="liveTxt">대기 중</span>
+  </div>
 </div>
+
+<!-- ── Spectrum ── -->
 <div class="spec-strip"><canvas id="specCv"></canvas></div>
 
-<div class="main">
-  <div class="col-left">
-    <div class="slabel">음질 지표</div>
+<!-- ── Scrollable content ── -->
+<div class="content" id="content">
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="note-display">
+      <div class="note-big" id="noteNm">--</div>
+      <div>
+        <div class="note-hz" id="noteFr">--- Hz</div>
+        <div class="note-cents" id="noteCt">--</div>
+      </div>
+    </div>
+    <div class="zone-badge" id="zoneBadge">--</div>
+  </div>
+
+  <!-- Gauge -->
+  <div class="gauge-card">
+    <div class="gauge-labels">
+      <span class="gl-c">CHEST</span>
+      <span class="gl-m">— MIX ZONE —</span>
+      <span class="gl-h">HEAD</span>
+    </div>
+    <canvas id="gaugeCv"></canvas>
+    <div class="h12-readout">
+      <div class="h12-big" id="h12Big">--</div>
+      <div class="h12-unit">H1 – H2 &nbsp;(dB)</div>
+      <div class="h12-zone" id="h12Zone">발성을 시작하세요</div>
+    </div>
+  </div>
+
+  <!-- Guide -->
+  <div class="guide">
+    <div class="g-icon" id="gIcon">💬</div>
+    <div class="g-text" id="gText">모드를 선택하고 발성을 시작하세요.</div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="metrics-grid">
     <div class="mcard">
       <div class="mname">CPP 음질 점수</div>
       <div class="mval" id="cppVal">--</div>
-      <div class="munit">dB · 높을수록 듣기 좋은 소리</div>
+      <div class="munit">dB · 높을수록 ↑</div>
       <div class="gtrak"><div class="gfill" id="cppG" style="background:var(--green)"></div></div>
-    </div>
-    <div class="mcard">
-      <div class="mname">싱어즈 포먼트 2.5–3.2kHz</div>
-      <div class="sf-trak" style="margin-top:4px"><div class="sf-fill" id="sfFill" style="width:0%;background:linear-gradient(90deg,var(--ember),var(--gold2))"></div></div>
-      <div class="sf-sub"><span>없음</span><span>약</span><span>중</span><span>강✓</span></div>
-    </div>
-    <div class="mcard">
-      <div class="mname">배음 H1 · H2 · H3</div>
-      <div class="h3sub">
-        <div class="h3row"><div class="h3lbl">H1</div><div class="h3trak"><div class="h3fill" id="hb1" style="width:0%;background:#58a6ff"></div></div></div>
-        <div class="h3row"><div class="h3lbl">H2</div><div class="h3trak"><div class="h3fill" id="hb2" style="width:0%;background:#d4a017"></div></div></div>
-        <div class="h3row"><div class="h3lbl">H3</div><div class="h3trak"><div class="h3fill" id="hb3" style="width:0%;background:#e8662a"></div></div></div>
-      </div>
     </div>
     <div class="mcard">
       <div class="mname">음고 안정도</div>
@@ -145,76 +240,135 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
       <div class="munit">%</div>
       <div class="gtrak"><div class="gfill" id="stabG" style="background:var(--gold)"></div></div>
     </div>
-  </div>
-
-  <div class="col-mid">
-    <div class="gauge-sec">
-      <div class="glabels"><span class="lc">CHEST</span><span class="lm">— MIX —</span><span class="lh">HEAD</span></div>
-      <canvas id="gaugeCv" width="300" height="128"></canvas>
-      <div class="h12ro">
-        <div class="h12big" id="h12Big">--</div>
-        <div class="h12unit">H1 – H2 &nbsp;(dB)</div>
-        <div class="h12zone" id="h12Zone">발성을 시작하세요</div>
-      </div>
+    <div class="mcard mcard-full">
+      <div class="mname">싱어즈 포먼트 &nbsp;2.5–3.2kHz</div>
+      <div class="sf-trak"><div class="sf-fill" id="sfFill" style="width:0%"></div></div>
+      <div class="sf-sub"><span>없음</span><span>약</span><span>중</span><span>강 ✓</span></div>
     </div>
-    <div class="note-row">
-      <div class="note-nm" id="noteNm">--</div>
-      <div class="note-dt">
-        <div class="note-fr" id="noteFr">--- Hz</div>
-        <div class="note-ct" id="noteCt">--</div>
+    <div class="mcard mcard-full">
+      <div class="mname">배음 에너지 H1 · H2 · H3</div>
+      <div class="hbars">
+        <div class="hrow"><div class="hlbl">H1</div><div class="htrak"><div class="hfill" id="hb1" style="width:0%;background:#58a6ff"></div></div></div>
+        <div class="hrow"><div class="hlbl">H2</div><div class="htrak"><div class="hfill" id="hb2" style="width:0%;background:#d4a017"></div></div></div>
+        <div class="hrow"><div class="hlbl">H3</div><div class="htrak"><div class="hfill" id="hb3" style="width:0%;background:#e8662a"></div></div></div>
       </div>
-    </div>
-    <div class="guide">
-      <div class="guide-icon" id="gIcon">💬</div>
-      <div class="guide-text" id="gText">모드를 선택하고 발성을 시작하세요.</div>
     </div>
   </div>
 
-  <div class="col-right">
-    <div class="slabel">녹음</div>
-    <div class="rec-sec">
-      <div class="mname">현재 발성 녹음</div>
-      <div class="rec-btns">
-        <button class="rbtn rb-rec" id="recBtn">● REC</button>
-        <button class="rbtn rb-good" id="saveGood" disabled>👍 좋음</button>
-        <button class="rbtn rb-bad" id="saveBad" disabled>👎 아쉬움</button>
-      </div>
-      <div class="rec-stat" id="recStat">REC → 저장 버튼으로 클립 저장</div>
-    </div>
-    <div class="rec-sec" style="flex:1;min-height:0">
-      <div class="mname">저장된 클립</div>
-      <div class="clip-list" id="clipList"><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);padding:4px 0">아직 없음</div></div>
-    </div>
-    <div class="mcard">
-      <div class="mname">훈련 모드</div>
-      <div style="display:flex;flex-direction:column;gap:4px;margin-top:5px">
-        <button class="mbtn on" id="mFree" style="text-align:left">자유 분석</button>
-        <button class="mbtn" id="mHum" style="text-align:left">허밍 훈련</button>
-        <button class="mbtn" id="mTrans" style="text-align:left">전환 훈련</button>
-      </div>
-    </div>
+  <!-- Mode -->
+  <div class="mode-row">
+    <button class="mbtn on" id="mFree">자유 분석</button>
+    <button class="mbtn" id="mHum">허밍 훈련</button>
+    <button class="mbtn" id="mTrans">전환 훈련</button>
   </div>
+
+  <!-- Recording -->
+  <div class="rec-card">
+    <div class="mname">녹음</div>
+    <div class="rec-btns">
+      <button class="rbtn rb-rec" id="recBtn">● REC</button>
+      <button class="rbtn rb-good" id="saveGood" disabled>👍 좋음</button>
+      <button class="rbtn rb-bad" id="saveBad" disabled>👎 아쉬움</button>
+    </div>
+    <div class="rec-stat" id="recStat">REC → 저장 버튼으로 클립 저장</div>
+    <div class="clip-list" id="clipList"></div>
+  </div>
+
+  <!-- bottom padding -->
+  <div style="height:4px"></div>
 </div>
 
-<div class="ctrl">
-  <button class="ibtn ib-stop" id="stopBtn" style="display:none">■ 정지</button>
-  <div class="ctrl-msg" id="ctrlMsg">마이크를 연결하고 발성을 시작하세요.</div>
+<!-- ── Bottom bar ── -->
+<div class="btmbar">
+  <button class="stop-btn" id="stopBtn" style="display:none">■ 정지</button>
+  <div class="btm-msg" id="btmMsg">마이크를 연결하고 발성을 시작하세요.</div>
 </div>
 
 <script>
-// ── AUDIO ──
+// ═══ AUDIO ═══
 let audioCtx=null,analyser=null,source=null,stream=null;
 let byteFreq,floatFreq,floatTime,raf=null,running=false;
 const FFT=8192;
-// ── STATE ──
+// ═══ STATE ═══
 let noiseFloor=0.006,calSum=0,calN=0,calibrating=false;
-let smoothNote=0,pitchActive=false,noSigN=0,detPitch=-1;
+let pitchActive=false,noSigN=0,detPitch=-1,smoothNote=0;
 let pitchHist=[],smoothH12=null,smoothCPP=null,smoothSF=0,smoothH=[0,0,0];
 let mode='free',transPhase=0;
-// ── REC ──
+// ═══ REC ═══
 let mediaRec=null,recChunks=[],isRecording=false,clips=[];
 
-// ── YIN ──
+// ═══ GAUGE SETUP ═══
+const gaugeCv=document.getElementById('gaugeCv');
+const gCtx=gaugeCv.getContext('2d');
+const DPR=window.devicePixelRatio||1;
+const H12_MIN=-8,H12_MAX=22,MIX_LO=2,MIX_HI=12;
+
+function sizeGauge(){
+  const card=gaugeCv.parentElement;
+  const w=card.clientWidth-20;
+  const h=Math.round(w*0.48);
+  gaugeCv.style.width=w+'px';gaugeCv.style.height=h+'px';
+  gaugeCv.width=w*DPR;gaugeCv.height=h*DPR;
+}
+window.addEventListener('resize',()=>{sizeGauge();drawGauge(smoothH12);});
+sizeGauge();
+
+function h2a(v){return Math.PI+Math.max(0,Math.min(1,(v-H12_MIN)/(H12_MAX-H12_MIN)))*Math.PI;}
+function drawGauge(val){
+  const W=gaugeCv.width,H=gaugeCv.height;
+  gCtx.clearRect(0,0,W,H);
+  const cx=W/2,cy=H-8*DPR,r=Math.min(W/2-12*DPR,H-16*DPR);
+  [{from:-8,to:0,col:'#7a1c1c'},{from:0,to:2,col:'#c0392b'},{from:2,to:12,col:'#b8820a'},{from:12,to:16,col:'#4a75b5'},{from:16,to:22,col:'#2a55a0'}]
+    .forEach(({from,to,col})=>{gCtx.beginPath();gCtx.arc(cx,cy,r,h2a(from),h2a(to));gCtx.lineWidth=18*DPR;gCtx.strokeStyle=col;gCtx.lineCap='butt';gCtx.stroke();});
+  // Mix glow
+  gCtx.beginPath();gCtx.arc(cx,cy,r,h2a(MIX_LO),h2a(MIX_HI));gCtx.lineWidth=18*DPR;gCtx.strokeStyle='rgba(212,160,23,.28)';gCtx.stroke();
+  // Ticks
+  [-6,-2,0,4,8,12,16,20].forEach(v=>{
+    const ang=h2a(v),c=Math.cos(ang),s=Math.sin(ang);
+    gCtx.beginPath();gCtx.moveTo(cx+c*(r-13*DPR),cy+s*(r-13*DPR));gCtx.lineTo(cx+c*(r+13*DPR),cy+s*(r+13*DPR));
+    gCtx.lineWidth=DPR;gCtx.strokeStyle='rgba(255,255,255,.2)';gCtx.stroke();
+  });
+  // Needle
+  if(val!==null){
+    const ang=h2a(val),c=Math.cos(ang),s=Math.sin(ang);
+    gCtx.shadowColor='rgba(240,220,150,.5)';gCtx.shadowBlur=10*DPR;
+    gCtx.beginPath();gCtx.moveTo(cx,cy);gCtx.lineTo(cx+c*(r+3*DPR),cy+s*(r+3*DPR));
+    gCtx.lineWidth=2.5*DPR;gCtx.strokeStyle='#f0e6d3';gCtx.lineCap='round';gCtx.stroke();
+    gCtx.shadowBlur=0;
+    gCtx.beginPath();gCtx.arc(cx+c*r,cy+s*r,5*DPR,0,Math.PI*2);gCtx.fillStyle='#f0e6d3';gCtx.fill();
+  }
+  gCtx.beginPath();gCtx.arc(cx,cy,4*DPR,0,Math.PI*2);gCtx.fillStyle='#1e2530';gCtx.fill();
+  gCtx.beginPath();gCtx.arc(cx,cy,2.5*DPR,0,Math.PI*2);gCtx.fillStyle='#f0e6d3';gCtx.fill();
+}
+drawGauge(null);
+
+// ═══ SPECTRUM ═══
+const sCv=document.getElementById('specCv'),sCtx=sCv.getContext('2d');
+function rsz(){const s=sCv.parentElement;sCv.width=s.clientWidth*DPR;sCv.height=s.clientHeight*DPR;}
+window.addEventListener('resize',rsz);rsz();
+function drawSpec(){
+  const W=sCv.width,H=sCv.height;sCtx.fillStyle='#000';sCtx.fillRect(0,0,W,H);
+  if(!analyser)return;
+  const N=analyser.frequencyBinCount,sr=audioCtx.sampleRate;
+  const maxBin=Math.min(N-1,Math.round(5000/(sr/(N*2))));
+  const bw=W/maxBin,mn=analyser.minDecibels,mx=analyser.maxDecibels;
+  for(let b=0;b<maxBin;b++){
+    const v=(floatFreq[b]-mn)/(mx-mn);if(v<0.02)continue;
+    sCtx.fillStyle=`hsl(${28+v*45},${55+v*30}%,${8+v*42}%)`;
+    sCtx.fillRect(b*bw,H-v*H,Math.max(1,bw-.5),v*H);
+  }
+  if(pitchActive&&detPitch>0){
+    const sfL=2500/(sr/(N*2)),sfH=3200/(sr/(N*2));
+    sCtx.fillStyle='rgba(212,160,23,.08)';sCtx.fillRect((sfL/maxBin)*W,0,((sfH-sfL)/maxBin)*W,H);
+    [1,2,3].forEach(h=>{
+      const x=(Math.round(detPitch*h/(sr/(N*2)))/maxBin)*W;if(x<0||x>W)return;
+      const al=1-(h-1)*.3;sCtx.strokeStyle=`rgba(212,160,23,${al})`;sCtx.lineWidth=DPR;
+      sCtx.setLineDash([3*DPR,3*DPR]);sCtx.beginPath();sCtx.moveTo(x,0);sCtx.lineTo(x,H);sCtx.stroke();sCtx.setLineDash([]);
+    });
+  }
+}
+
+// ═══ YIN ═══
 function yin(buf,sr){
   const len=buf.length,half=len>>1;
   const minT=Math.ceil(sr/2100),maxT=Math.min(half-1,Math.floor(sr/40));
@@ -230,64 +384,41 @@ function yin(buf,sr){
   let bv=1,bt=-1;for(let i=minT;i<=maxT;i++)if(d[i]<bv){bv=d[i];bt=i;}
   return bv<0.38&&bt>0?sr/pi(d,bt):-1;
 }
-function pi(a,x){
-  if(x<1||x>=a.length-1)return x;
-  const p=a[x-1],q=a[x],r=a[x+1],dn=2*q-p-r;return dn===0?x:x+(r-p)/(2*dn);
-}
+function pi(a,x){if(x<1||x>=a.length-1)return x;const p=a[x-1],q=a[x],r=a[x+1],dn=2*q-p-r;return dn===0?x:x+(r-p)/(2*dn);}
 
-// ── H1-H2 (FIXED: float dB, direct subtraction) ──
+// ═══ H1-H2 (float dB, direct subtraction) ═══
 function calcH12(pitch,fa,N,sr){
   if(pitch<=0)return null;
   const bHz=sr/(N*2);
-  function pkDb(f){
-    const c=Math.round(f/bHz),r=Math.max(2,Math.round(c*.06));
-    let mx=-Infinity;
-    for(let b=Math.max(0,c-r);b<=Math.min(N-1,c+r);b++)if(fa[b]>mx)mx=fa[b];
-    return mx;
-  }
-  const h1=pkDb(pitch),h2=pkDb(pitch*2);
+  function pk(f){const c=Math.round(f/bHz),r=Math.max(2,Math.round(c*.06));let mx=-Infinity;for(let b=Math.max(0,c-r);b<=Math.min(N-1,c+r);b++)if(fa[b]>mx)mx=fa[b];return mx;}
+  const h1=pk(pitch),h2=pk(pitch*2);
   if(h1<-85||h2<-85)return null;
-  return h1-h2; // dB difference — positive means H1>H2
+  return h1-h2;
 }
-
 function hLv(pitch,n,fa,N,sr){
-  if(pitch<=0)return 0;
-  const bHz=sr/(N*2),f=pitch*n;if(f>sr/2)return 0;
-  const c=Math.round(f/bHz),r=Math.max(2,Math.round(c*.06));
-  let mx=-Infinity;
+  if(pitch<=0)return 0;const bHz=sr/(N*2),f=pitch*n;if(f>sr/2)return 0;
+  const c=Math.round(f/bHz),r=Math.max(2,Math.round(c*.06));let mx=-Infinity;
   for(let b=Math.max(0,c-r);b<=Math.min(N-1,c+r);b++)if(fa[b]>mx)mx=fa[b];
-  const mn=analyser.minDecibels,mx2=analyser.maxDecibels;
-  return Math.max(0,Math.min(1,(mx-mn)/(mx2-mn)));
+  return Math.max(0,Math.min(1,(mx-analyser.minDecibels)/(analyser.maxDecibels-analyser.minDecibels)));
 }
 
-// ── CPP (Cepstral Peak Prominence) ──
+// ═══ CPP ═══
 function calcCPP(pitch,fa,N,sr){
-  if(pitch<=0||!fa)return null;
-  const qPeak=Math.round(pitch*N*2/sr);
-  if(qPeak<1||qPeak>=N/2)return null;
+  if(pitch<=0)return null;
+  const qP=Math.round(pitch*N*2/sr);if(qP<1||qP>=N/2)return null;
   const maxK=Math.min(N-1,Math.round(5000/(sr/(N*2))));
-  const qMin=Math.max(1,qPeak-3),qMax=Math.min(N/2-1,qPeak+3);
-  let peakVal=-Infinity;
-  for(let q=qMin;q<=qMax;q++){
-    const tw=2*Math.PI*q/N;let c=0;
-    for(let k=0;k<=maxK;k++)c+=fa[k]*Math.cos(tw*k);
-    c/=N;if(c>peakVal)peakVal=c;
-  }
-  const qL=Math.max(1,qPeak-20),qR=Math.min(N/2-1,qPeak+20);
+  const qMn=Math.max(1,qP-3),qMx=Math.min(N/2-1,qP+3);
+  let peak=-Infinity;
+  for(let q=qMn;q<=qMx;q++){const tw=2*Math.PI*q/N;let c=0;for(let k=0;k<=maxK;k++)c+=fa[k]*Math.cos(tw*k);c/=N;if(c>peak)peak=c;}
+  const qL=Math.max(1,qP-20),qR=Math.min(N/2-1,qP+20);
   let sx=0,sy=0,sxy=0,sx2=0,cnt=0;
-  for(let q=qL;q<=qR;q++){
-    if(q>=qMin&&q<=qMax)continue;
-    const tw=2*Math.PI*q/N;let c=0;
-    for(let k=0;k<=maxK;k++)c+=fa[k]*Math.cos(tw*k);
-    c/=N;sx+=q;sy+=c;sxy+=q*c;sx2+=q*q;cnt++;
-  }
+  for(let q=qL;q<=qR;q++){if(q>=qMn&&q<=qMx)continue;const tw=2*Math.PI*q/N;let c=0;for(let k=0;k<=maxK;k++)c+=fa[k]*Math.cos(tw*k);c/=N;sx+=q;sy+=c;sxy+=q*c;sx2+=q*q;cnt++;}
   if(cnt<2)return null;
-  const slope=(cnt*sxy-sx*sy)/(cnt*sx2-sx*sx);
-  const intercept=(sy-slope*sx)/cnt;
-  return Math.max(0,Math.min(30,(peakVal-(slope*qPeak+intercept))*10));
+  const sl=(cnt*sxy-sx*sy)/(cnt*sx2-sx*sx),ic=(sy-sl*sx)/cnt;
+  return Math.max(0,Math.min(30,(peak-(sl*qP+ic))*10));
 }
 
-// ── SINGER'S FORMANT ──
+// ═══ SF ═══
 function calcSF(fa,N,sr){
   const bHz=sr/(N*2),lo=Math.round(2500/bHz),hi=Math.min(N-1,Math.round(3200/bHz)),top=Math.min(N-1,Math.round(8000/bHz));
   let sf=0,tot=0;const mn=analyser.minDecibels;
@@ -295,48 +426,11 @@ function calcSF(fa,N,sr){
   return tot<1e-12?0:Math.min(1,sf/tot*14);
 }
 
-// ── GAUGE ──
-const gCv=document.getElementById('gaugeCv'),gCtx=gCv.getContext('2d'),DPR=window.devicePixelRatio||1;
-const H12_MIN=-8,H12_MAX=22,MIX_LO=2,MIX_HI=12;
-function h2a(v){return Math.PI+Math.max(0,Math.min(1,(v-H12_MIN)/(H12_MAX-H12_MIN)))*Math.PI;}
-function drawGauge(val){
-  const W=gCv.width,H=gCv.height,cx=W/2,cy=H-8,r=Math.min(W/2-10,H-14);
-  gCtx.clearRect(0,0,W,H);
-  [{from:-8,to:0,col:'#7a1c1c'},{from:0,to:2,col:'#c0392b'},{from:2,to:12,col:'#b8820a'},{from:12,to:16,col:'#4a75b5'},{from:16,to:22,col:'#2a55a0'}]
-    .forEach(({from,to,col})=>{gCtx.beginPath();gCtx.arc(cx,cy,r,h2a(from),h2a(to));gCtx.lineWidth=16;gCtx.strokeStyle=col;gCtx.lineCap='butt';gCtx.stroke();});
-  gCtx.beginPath();gCtx.arc(cx,cy,r,h2a(MIX_LO),h2a(MIX_HI));gCtx.lineWidth=16;gCtx.strokeStyle='rgba(212,160,23,.3)';gCtx.stroke();
-  [-6,-2,0,4,8,12,16,20].forEach(v=>{const ang=h2a(v);gCtx.beginPath();gCtx.moveTo(cx+Math.cos(ang)*(r-11),cy+Math.sin(ang)*(r-11));gCtx.lineTo(cx+Math.cos(ang)*(r+11),cy+Math.sin(ang)*(r+11));gCtx.lineWidth=1;gCtx.strokeStyle='rgba(255,255,255,.18)';gCtx.stroke();});
-  if(val!==null){
-    const ang=h2a(val);gCtx.shadowColor='rgba(240,220,150,.5)';gCtx.shadowBlur=10;
-    gCtx.beginPath();gCtx.moveTo(cx,cy);gCtx.lineTo(cx+Math.cos(ang)*(r+2),cy+Math.sin(ang)*(r+2));gCtx.lineWidth=2.5;gCtx.strokeStyle='#f0e6d3';gCtx.lineCap='round';gCtx.stroke();gCtx.shadowBlur=0;
-    gCtx.beginPath();gCtx.arc(cx+Math.cos(ang)*r,cy+Math.sin(ang)*r,5,0,Math.PI*2);gCtx.fillStyle='#f0e6d3';gCtx.fill();
-  }
-  gCtx.beginPath();gCtx.arc(cx,cy,3.5,0,Math.PI*2);gCtx.fillStyle='#1e2530';gCtx.fill();
-  gCtx.beginPath();gCtx.arc(cx,cy,2,0,Math.PI*2);gCtx.fillStyle='#f0e6d3';gCtx.fill();
-}
-drawGauge(null);
-
-// ── SPECTRUM ──
-const sCv=document.getElementById('specCv'),sCtx=sCv.getContext('2d');
-function rsz(){const s=sCv.parentElement;sCv.width=s.clientWidth*DPR;sCv.height=s.clientHeight*DPR;}
-window.addEventListener('resize',rsz);rsz();
-function drawSpec(){
-  const W=sCv.width,H=sCv.height;sCtx.fillStyle='#000';sCtx.fillRect(0,0,W,H);
-  if(!analyser)return;
-  const N=analyser.frequencyBinCount,sr=audioCtx.sampleRate,maxBin=Math.min(N-1,Math.round(5000/(sr/(N*2))));
-  const bw=W/maxBin,mn=analyser.minDecibels,mx=analyser.maxDecibels;
-  for(let b=0;b<maxBin;b++){const v=(floatFreq[b]-mn)/(mx-mn);if(v<0.02)continue;sCtx.fillStyle=`hsl(${28+v*45},${55+v*30}%,${8+v*42}%)`;sCtx.fillRect(b*bw,H-v*H,Math.max(1,bw-.5),v*H);}
-  if(pitchActive&&detPitch>0){
-    const sfL=2500/(sr/(N*2)),sfH=3200/(sr/(N*2));sCtx.fillStyle='rgba(212,160,23,.08)';sCtx.fillRect((sfL/maxBin)*W,0,((sfH-sfL)/maxBin)*W,H);
-    [1,2,3].forEach(h=>{const x=(Math.round(detPitch*h/(sr/(N*2)))/maxBin)*W;if(x<0||x>W)return;const al=1-(h-1)*.3;sCtx.strokeStyle=`rgba(212,160,23,${al})`;sCtx.lineWidth=DPR;sCtx.setLineDash([3*DPR,3*DPR]);sCtx.beginPath();sCtx.moveTo(x,0);sCtx.lineTo(x,H);sCtx.stroke();sCtx.setLineDash([]);sCtx.fillStyle=`rgba(212,160,23,${al})`;sCtx.font=`${9*DPR}px DM Mono,monospace`;sCtx.fillText('H'+h,x+2*DPR,10*DPR);});
-  }
-}
-
-// ── NOTES ──
+// ═══ NOTES ═══
 const NS=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 function nInfo(p){const fn=12*Math.log2(p/440)+69,n=Math.round(fn);return{name:NS[n%12]+(Math.floor(n/12)-1),midi:n,cents:Math.round((fn-n)*100)};}
 
-// ── GUIDE ──
+// ═══ GUIDE ═══
 function guide(h12,cpp,sf,midi){
   const ic=document.getElementById('gIcon'),tx=document.getElementById('gText'),hi=midi&&midi>=72;
   const cn=cpp!==null?` · CPP ${cpp.toFixed(1)}dB`:'';
@@ -348,19 +442,19 @@ function guide(h12,cpp,sf,midi){
   if(mode==='trans'){
     if(transPhase===0){ic.textContent='🎵';tx.innerHTML='<em>허밍</em>으로 먼저 안정시킨 후 <em>"흠~마~"</em>로 조금만 여세요.';if(pitchActive&&h12!==null&&noSigN<5)transPhase=1;}
     else if(transPhase===1){ic.textContent='🔓';tx.innerHTML='열린 모음으로 전환 — 바늘이 <strong>황금 구간</strong>에 머물면 믹스 유지 성공!';if(h12!==null&&h12>MIX_LO&&h12<MIX_HI+4&&sf>0.3)transPhase=2;}
-    else{ic.textContent='🎉';tx.innerHTML='<strong>성공!</strong> 허밍 울림을 유지하며 모음으로 전환됐습니다. 이 감각을 기억하세요.';}
+    else{ic.textContent='🎉';tx.innerHTML='<strong>성공!</strong> 허밍 울림을 유지하며 모음으로 전환됐습니다.';}
     return;
   }
   if(!pitchActive){ic.textContent='💬';tx.innerHTML='발성을 시작하면 분석이 표시됩니다.';return;}
   if(h12===null){ic.textContent='⚠️';tx.innerHTML='배음 신호가 약합니다. 조금 더 크게 발성해 주세요.';return;}
   if(h12>MIX_HI+4){ic.textContent='🫧';tx.innerHTML=`<strong>두성/가성 지배</strong>${cn}<br>${hi?'앞쪽 공명을 의식하고 TA근을 더 켜보세요.':'낮은 음역에서 가성이 나오고 있습니다.'}`;}
-  else if(h12>MIX_HI){ic.textContent='🔆';tx.innerHTML=`<strong>믹스 (두성쪽)</strong>${cn}<br>${hi?'좋은 방향! 싱어즈 포먼트를 더 키워보세요.':''}`;}
-  else if(h12>=MIX_LO){ic.textContent='✨';tx.innerHTML=`<strong>믹스 존 ✓</strong>${cn}<br>${sf>0.4?'싱어즈 포먼트 활성화 — 최적 상태!':'앞이마 방향 공명을 의식해 링을 더해보세요.'}`;}
-  else if(h12>-2){ic.textContent='⚡';tx.innerHTML=`<strong>흉성쪽 믹스</strong>${cn}<br>${hi?'고음에서 흉성 과압이 의심됩니다. 조금 힘을 빼세요.':''}`;}
+  else if(h12>MIX_HI){ic.textContent='🔆';tx.innerHTML=`<strong>믹스 (두성쪽)</strong>${cn}<br>좋은 방향! 싱어즈 포먼트를 더 키워보세요.`;}
+  else if(h12>=MIX_LO){ic.textContent='✨';tx.innerHTML=`<strong>믹스 존 ✓</strong>${cn}<br>${sf>0.4?'싱어즈 포먼트 활성화 — 최적 상태!':'앞이마 공명을 의식해 링을 더해보세요.'}`;}
+  else if(h12>-2){ic.textContent='⚡';tx.innerHTML=`<strong>흉성쪽 믹스</strong>${cn}<br>${hi?'고음에서 흉성 과압 의심. 조금 힘을 빼세요.':''}`;}
   else{ic.textContent='🔴';tx.innerHTML=`<strong>강한 흉성/과압</strong>${cn}<br>볼륨을 낮추고 발성해 보세요.`;}
 }
 
-// ── RECORDING ──
+// ═══ RECORDING ═══
 document.getElementById('recBtn').onclick=()=>{
   if(!running)return;
   if(!isRecording){
@@ -379,7 +473,7 @@ document.getElementById('recBtn').onclick=()=>{
 };
 function stopRec(label){
   if(!mediaRec||!isRecording)return;
-  const onStop=()=>{
+  mediaRec.onstop=()=>{
     if(label){
       const blob=new Blob(recChunks,{type:mediaRec.mimeType||'audio/webm'});
       const url=URL.createObjectURL(blob);
@@ -389,63 +483,109 @@ function stopRec(label){
       document.getElementById('recStat').textContent=`저장 — ${label==='good'?'👍 좋은 발성':'👎 아쉬운 발성'}`;
     }else{document.getElementById('recStat').textContent='취소됨';}
   };
-  mediaRec.onstop=onStop;mediaRec.stop();
-  isRecording=false;
-  document.getElementById('recBtn').classList.remove('on');
-  document.getElementById('recBtn').textContent='● REC';
-  document.getElementById('saveGood').disabled=true;
-  document.getElementById('saveBad').disabled=true;
+  mediaRec.stop();isRecording=false;
+  document.getElementById('recBtn').classList.remove('on');document.getElementById('recBtn').textContent='● REC';
+  document.getElementById('saveGood').disabled=true;document.getElementById('saveBad').disabled=true;
 }
 document.getElementById('saveGood').onclick=()=>stopRec('good');
 document.getElementById('saveBad').onclick=()=>stopRec('bad');
 function renderClips(){
   const list=document.getElementById('clipList');
-  if(!clips.length){list.innerHTML='<div style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--muted);padding:4px 0">아직 없음</div>';return;}
-  list.innerHTML=clips.map(c=>`<div class="clip"><div class="ctag ${c.label}">${c.label==='good'?'👍':'👎'}</div><div class="cname">${c.note} H${c.h12} C${c.cpp}</div><button class="cplay" onclick="window._play(${c.id})">▶</button></div>`).join('');
+  if(!clips.length){list.innerHTML='';return;}
+  list.innerHTML=clips.map(c=>`
+    <div class="clip">
+      <div class="ctag ${c.label}">${c.label==='good'?'👍 좋음':'👎 아쉬움'}</div>
+      <div class="cname">${c.note} · H${c.h12} · C${c.cpp}</div>
+      <button class="cplay" onclick="window._play(${c.id})">▶</button>
+    </div>`).join('');
 }
-window._play=function(id){const c=clips.find(x=>x.id===id);if(c)new Audio(c.url).play();};
+window._play=id=>{const c=clips.find(x=>x.id===id);if(c)new Audio(c.url).play();};
 
-// ── LOOP ──
+// ═══ MAIN LOOP ═══
 function loop(){
   if(!running)return;
   raf=requestAnimationFrame(loop);
   analyser.getByteFrequencyData(byteFreq);
   analyser.getFloatFrequencyData(floatFreq);
   analyser.getFloatTimeDomainData(floatTime);
-  if(calibrating){let s=0;for(let i=0;i<floatTime.length;i++)s+=floatTime[i]*floatTime[i];calSum+=s/floatTime.length;calN++;drawSpec();drawGauge(null);return;}
+
+  if(calibrating){
+    let s=0;for(let i=0;i<floatTime.length;i++)s+=floatTime[i]*floatTime[i];
+    calSum+=s/floatTime.length;calN++;drawSpec();drawGauge(null);return;
+  }
+
   const pitch=yin(floatTime,audioCtx.sampleRate);
   const N=analyser.frequencyBinCount,sr=audioCtx.sampleRate;
+
   if(pitch>0&&pitch>=38&&pitch<=2100){
     noSigN=0;detPitch=pitch;
     const fn=12*Math.log2(pitch/440)+69;
     if(!pitchActive){smoothNote=fn;pitchActive=true;}else smoothNote=smoothNote*.9+fn*.1;
     pitchHist.push(fn);if(pitchHist.length>30)pitchHist.shift();
     const ni=nInfo(pitch);
+
     const rH12=calcH12(pitch,floatFreq,N,sr);
     if(rH12!==null)smoothH12=smoothH12===null?rH12:smoothH12*.82+rH12*.18;
     const rCPP=calcCPP(pitch,floatFreq,N,sr);
     if(rCPP!==null)smoothCPP=smoothCPP===null?rCPP:smoothCPP*.85+rCPP*.15;
     const rSF=calcSF(floatFreq,N,sr);smoothSF=smoothSF*.8+rSF*.2;
     for(let h=1;h<=3;h++){smoothH[h-1]=smoothH[h-1]*.82+hLv(pitch,h,floatFreq,N,sr)*.18;document.getElementById('hb'+h).style.width=(smoothH[h-1]*100)+'%';}
-    if(pitchHist.length>=5){const m=pitchHist.reduce((a,b)=>a+b,0)/pitchHist.length,std=Math.sqrt(pitchHist.reduce((a,b)=>a+(b-m)**2,0)/pitchHist.length)*100,st=Math.round(Math.max(0,Math.min(100,100-std*1.6)));const se=document.getElementById('stabVal');se.textContent=st;se.className='mval'+(st>=75?'':st>=45?' amber':' red');document.getElementById('stabG').style.width=st+'%';document.getElementById('stabG').style.background=st>=75?'var(--green)':st>=45?'var(--gold)':'var(--red)';}
-    if(smoothCPP!==null){const ce=document.getElementById('cppVal');ce.textContent=smoothCPP.toFixed(1);ce.className='mval'+(smoothCPP>=14?'':smoothCPP>=8?' amber':' red');document.getElementById('cppG').style.width=Math.min(100,smoothCPP/20*100)+'%';document.getElementById('cppG').style.background=smoothCPP>=14?'var(--green)':smoothCPP>=8?'var(--gold)':'var(--red)';}
+
+    // Stability
+    if(pitchHist.length>=5){
+      const m=pitchHist.reduce((a,b)=>a+b,0)/pitchHist.length;
+      const std=Math.sqrt(pitchHist.reduce((a,b)=>a+(b-m)**2,0)/pitchHist.length)*100;
+      const st=Math.round(Math.max(0,Math.min(100,100-std*1.6)));
+      const se=document.getElementById('stabVal');se.textContent=st;se.className='mval'+(st>=75?'':st>=45?' amber':' red');
+      document.getElementById('stabG').style.width=st+'%';document.getElementById('stabG').style.background=st>=75?'var(--green)':st>=45?'var(--gold)':'var(--red)';
+    }
+
+    // CPP
+    if(smoothCPP!==null){
+      const ce=document.getElementById('cppVal');ce.textContent=smoothCPP.toFixed(1);ce.className='mval'+(smoothCPP>=14?'':smoothCPP>=8?' amber':' red');
+      document.getElementById('cppG').style.width=Math.min(100,smoothCPP/20*100)+'%';document.getElementById('cppG').style.background=smoothCPP>=14?'var(--green)':smoothCPP>=8?'var(--gold)':'var(--red)';
+    }
+
+    // SF
     document.getElementById('sfFill').style.width=(smoothSF*100)+'%';
-    if(smoothH12!==null){const v=smoothH12,col=v>MIX_HI+4?'var(--blue)':v>MIX_HI?'var(--gold2)':v>=MIX_LO?'var(--gold)':v>-2?'var(--ember)':'var(--red)';document.getElementById('h12Big').textContent=v.toFixed(1);document.getElementById('h12Big').style.color=col;const z=v>MIX_HI+4?'두성/가성':v>MIX_HI?'믹스 (두성쪽)':v>=MIX_LO?'믹스 ✓':v>-2?'흉성쪽 믹스':'강한 흉성';document.getElementById('h12Zone').textContent=z;document.getElementById('h12Zone').style.color=col;drawGauge(v);}
-    document.getElementById('noteNm').textContent=ni.name;document.getElementById('noteFr').textContent=pitch.toFixed(1)+' Hz';document.getElementById('noteCt').textContent=(ni.cents>0?'+':'')+ni.cents+'¢';
+
+    // H1-H2 gauge + labels
+    if(smoothH12!==null){
+      const v=smoothH12;
+      const col=v>MIX_HI+4?'var(--blue)':v>MIX_HI?'var(--gold2)':v>=MIX_LO?'var(--gold)':v>-2?'var(--ember)':'var(--red)';
+      const zone=v>MIX_HI+4?'두성/가성':v>MIX_HI?'믹스 (두성쪽)':v>=MIX_LO?'믹스 ✓':v>-2?'흉성쪽 믹스':'강한 흉성';
+      document.getElementById('h12Big').textContent=v.toFixed(1);document.getElementById('h12Big').style.color=col;
+      document.getElementById('h12Zone').textContent=zone;document.getElementById('h12Zone').style.color=col;
+      drawGauge(v);
+      // Zone badge
+      const zb=document.getElementById('zoneBadge');zb.textContent=zone;
+      zb.style.color=col;zb.style.borderColor=col;zb.style.background=col+'1a';
+    }
+
+    // Note
+    document.getElementById('noteNm').textContent=ni.name;
+    document.getElementById('noteFr').textContent=pitch.toFixed(1)+' Hz';
+    document.getElementById('noteCt').textContent=(ni.cents>0?'+':'')+ni.cents+'¢';
+
     guide(smoothH12,smoothCPP,smoothSF,ni.midi);
-    document.getElementById('ctrlMsg').textContent=`${ni.name} · ${pitch.toFixed(1)}Hz · H1-H2:${smoothH12!==null?smoothH12.toFixed(1):'--'}dB · CPP:${smoothCPP!==null?smoothCPP.toFixed(1):'--'}dB`;
+    document.getElementById('btmMsg').textContent=`${ni.name} · ${pitch.toFixed(1)}Hz · H1-H2:${smoothH12!==null?smoothH12.toFixed(1):'--'}dB · CPP:${smoothCPP!==null?smoothCPP.toFixed(1):'--'}dB`;
+
   }else{
-    noSigN++;if(noSigN>25&&pitchActive){
+    noSigN++;
+    if(noSigN>25&&pitchActive){
       pitchActive=false;detPitch=-1;smoothH12=null;smoothCPP=null;smoothSF=0;smoothH.fill(0);
-      ['h12Big','h12Zone','noteNm','noteFr','noteCt','cppVal'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=id==='h12Zone'?'발성을 시작하세요':'--';});
-      document.getElementById('sfFill').style.width='0%';for(let h=1;h<=3;h++)document.getElementById('hb'+h).style.width='0%';
+      document.getElementById('noteNm').textContent='--';document.getElementById('noteFr').textContent='--- Hz';document.getElementById('noteCt').textContent='--';
+      document.getElementById('h12Big').textContent='--';document.getElementById('h12Zone').textContent='발성을 시작하세요';
+      document.getElementById('cppVal').textContent='--';document.getElementById('sfFill').style.width='0%';
+      for(let h=1;h<=3;h++)document.getElementById('hb'+h).style.width='0%';
+      const zb=document.getElementById('zoneBadge');zb.textContent='--';zb.style.color='';zb.style.borderColor='';zb.style.background='';
       drawGauge(null);guide(null,null,0,null);if(mode==='trans')transPhase=0;
     }
   }
   drawSpec();
 }
 
-// ── SETUP ──
+// ═══ AUDIO SETUP ═══
 async function teardown(){
   running=false;if(raf){cancelAnimationFrame(raf);raf=null;}
   if(isRecording&&mediaRec){mediaRec.stop();isRecording=false;}
@@ -463,13 +603,23 @@ document.getElementById('startBtn').onclick=async()=>{
     source=audioCtx.createMediaStreamSource(stream);source.connect(analyser);
     byteFreq=new Uint8Array(analyser.frequencyBinCount);floatFreq=new Float32Array(analyser.frequencyBinCount);floatTime=new Float32Array(analyser.fftSize);
     msg.textContent='🔇 소음 측정 중 — 잠시 조용히…';calibrating=true;calSum=0;calN=0;running=true;loop();
-    setTimeout(()=>{calibrating=false;noiseFloor=Math.max(0.004,Math.sqrt(calSum/Math.max(1,calN)));msg.textContent='';document.getElementById('overlay').style.display='none';document.getElementById('stopBtn').style.display='';document.getElementById('liveDot').classList.add('on');document.getElementById('liveTxt').textContent='분석 중';},1600);
+    setTimeout(()=>{
+      calibrating=false;noiseFloor=Math.max(0.004,Math.sqrt(calSum/Math.max(1,calN)));
+      msg.textContent='';document.getElementById('overlay').style.display='none';
+      document.getElementById('stopBtn').style.display='';
+      document.getElementById('liveDot').classList.add('on');document.getElementById('liveTxt').textContent='분석 중';
+    },1600);
   }catch(e){msg.textContent='⚠ 마이크 권한이 필요합니다.';console.error(e);}
 };
 document.getElementById('stopBtn').onclick=async()=>{
-  await teardown();document.getElementById('overlay').style.display='flex';document.getElementById('stopBtn').style.display='none';document.getElementById('liveDot').classList.remove('on');document.getElementById('liveTxt').textContent='대기 중';
-  pitchActive=false;noSigN=0;smoothH12=null;smoothCPP=null;smoothSF=0;smoothH.fill(0);pitchHist=[];transPhase=0;detPitch=-1;drawGauge(null);
+  await teardown();document.getElementById('overlay').style.display='flex';
+  document.getElementById('stopBtn').style.display='none';
+  document.getElementById('liveDot').classList.remove('on');document.getElementById('liveTxt').textContent='대기 중';
+  pitchActive=false;noSigN=0;smoothH12=null;smoothCPP=null;smoothSF=0;smoothH.fill(0);pitchHist=[];transPhase=0;detPitch=-1;
+  drawGauge(null);
 };
+
+// ═══ MODE ═══
 ['mFree','mHum','mTrans'].forEach(id=>{
   document.getElementById(id).onclick=()=>{
     mode={mFree:'free',mHum:'hum',mTrans:'trans'}[id];transPhase=0;
