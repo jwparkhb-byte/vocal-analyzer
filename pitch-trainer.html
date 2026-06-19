@@ -4,16 +4,18 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="theme-color" content="#0c447c"/>
-<title>음정 트레이너</title>
+<title>발성 트레이너 v2.0</title>
 <style>
-:root {
+:root{
   --bg:#f5f5f0; --surface:#fff; --surface2:#e8e8e2;
   --text1:#1a1a18; --text2:#6f6e69; --text3:#b4b2a9;
   --accent:#0c447c; --success:#1D9E75; --warning:#EF9F27; --danger:#E24B4A;
+  --wkey:#fff; --wkey-line:#d8d8d2; --bkey:#2a2a28;
 }
 @media(prefers-color-scheme:dark){
   :root{ --bg:#1c1c1a; --surface:#282825; --surface2:#2c2c2a;
-         --text1:#f1efe8; --text2:#b4b2a9; --text3:#5f5e5a; }
+         --text1:#f1efe8; --text2:#b4b2a9; --text3:#5f5e5a;
+         --wkey:#3a3a37; --wkey-line:#222; --bkey:#0d0d0c; }
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{
@@ -21,163 +23,178 @@ body{
   background:var(--bg);color:var(--text1);min-height:100vh;
   -webkit-tap-highlight-color:transparent;
 }
-#app{max-width:480px;margin:0 auto;padding:1.5rem 1.25rem 3rem;
+#app{max-width:560px;margin:0 auto;padding:1rem 1rem 2rem;
      display:flex;flex-direction:column;min-height:100vh;}
+
+/* 인트로 */
 #intro{flex:1;display:flex;flex-direction:column;justify-content:center;
        align-items:center;text-align:center;gap:1rem;}
 #intro h1{font-size:24px;font-weight:600;}
 #intro p{font-size:15px;color:var(--text2);line-height:1.8;}
-.primary-btn{
-  font-size:16px;font-weight:500;padding:14px 28px;border-radius:14px;
-  border:none;background:var(--accent);color:#fff;cursor:pointer;
-}
+.primary-btn{font-size:16px;font-weight:500;padding:14px 28px;border-radius:14px;
+  border:none;background:var(--accent);color:#fff;cursor:pointer;}
 #mic-error{color:var(--danger);font-size:13px;margin-top:0.5rem;}
-#trainer{display:none;flex-direction:column;}
-.lesson-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;}
-#lesson-name{font-size:14px;font-weight:500;}
-#lesson-count{font-size:13px;color:var(--text2);}
-.prog-track{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-bottom:1.5rem;}
-#prog-fill{height:100%;background:var(--accent);transition:width .35s ease;width:0%;}
-.note-row{display:flex;justify-content:center;align-items:baseline;gap:6px;margin-bottom:0.25rem;}
-#target-note{font-size:64px;font-weight:300;letter-spacing:-2px;line-height:1;}
-#target-freq{font-size:14px;color:var(--text3);margin-bottom:1rem;text-align:center;}
-#seq-dots{display:flex;justify-content:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;}
-.dot{
-  width:36px;height:36px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:500;
-  background:var(--surface2);color:var(--text2);transition:all 0.2s;
-}
-.dot.done{background:var(--success);color:#fff;}
-.dot.current{background:var(--accent);color:#fff;transform:scale(1.15);}
-#phase-badge{text-align:center;margin-bottom:0.75rem;font-size:20px;font-weight:500;min-height:32px;transition:color 0.2s;}
-#countdown{text-align:center;font-size:48px;font-weight:300;color:var(--accent);min-height:56px;margin-bottom:0.25rem;}
+.version-tag{position:fixed;bottom:6px;right:8px;font-size:10px;color:var(--text3);z-index:50;}
 
-/* 유지 진행 바 (큰 가로 바) */
-#hold-bar-wrap{
-  height:28px;background:var(--surface2);border-radius:14px;
-  overflow:hidden;margin-bottom:0.5rem;position:relative;
+#main{display:none;flex-direction:column;gap:0.75rem;}
+
+/* 튜너 영역 */
+.tuner{
+  background:var(--surface);border-radius:18px;padding:1rem;
+  border:1px solid var(--surface2);
 }
-#hold-bar{
-  height:100%;width:0%;background:var(--success);
-  transition:width .1s linear;border-radius:14px;
+.tuner-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;}
+.tuner-label{font-size:12px;color:var(--text2);}
+#live-note{font-size:40px;font-weight:300;line-height:1;}
+#live-note .oct{font-size:18px;color:var(--text3);}
+#live-cents{font-size:14px;color:var(--text2);min-height:18px;}
+/* 튜너 미니 미터 */
+.meter{position:relative;height:36px;margin-top:0.5rem;background:var(--surface2);border-radius:10px;overflow:hidden;}
+.meter-center{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--text3);opacity:0.6;}
+.meter-zone{position:absolute;top:0;bottom:0;left:calc(50% - 15%);width:30%;background:var(--success);opacity:0.12;}
+#meter-needle{position:absolute;top:4px;bottom:4px;width:6px;border-radius:3px;
+  background:var(--text2);left:50%;transform:translateX(-50%);transition:left .08s,background .08s;}
+
+/* 목표 / 채점 영역 */
+.target-card{
+  background:var(--surface);border-radius:18px;padding:1rem;
+  border:1px solid var(--surface2);text-align:center;
 }
-#hold-bar-text{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:600;color:var(--text1);
+#target-headline{font-size:13px;color:var(--text2);margin-bottom:0.25rem;}
+#target-note{font-size:30px;font-weight:400;}
+#target-note .oct{font-size:15px;color:var(--text3);}
+#target-sub{font-size:13px;color:var(--text3);margin-top:2px;min-height:18px;}
+
+#hold-bar-wrap{height:26px;background:var(--surface2);border-radius:13px;overflow:hidden;
+  position:relative;margin-top:0.75rem;}
+#hold-bar{height:100%;width:0%;background:var(--success);transition:width .1s linear;border-radius:13px;}
+#hold-bar-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:600;color:var(--text1);}
+
+#stability-line{font-size:12px;color:var(--text3);margin-top:0.5rem;min-height:16px;}
+
+/* 설정 바 */
+.settings{display:flex;align-items:center;gap:0.75rem;
+  background:var(--surface);border-radius:14px;padding:0.6rem 0.9rem;border:1px solid var(--surface2);}
+.settings label{font-size:12px;color:var(--text2);white-space:nowrap;}
+#hold-time{flex:1;}
+#hold-time-val{font-size:13px;font-weight:600;min-width:42px;text-align:right;}
+
+/* 건반 */
+.kb-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px;
+  border:1px solid var(--surface2);background:var(--surface2);}
+.keyboard{position:relative;height:150px;display:flex;width:max-content;}
+.wkey{
+  position:relative;width:46px;height:150px;background:var(--wkey);
+  border-right:1px solid var(--wkey-line);cursor:pointer;
+  display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
+  padding-bottom:8px;user-select:none;
 }
-.graph-wrap{position:relative;margin-bottom:0.5rem;}
-#pitch-canvas{width:100%;height:150px;display:block;border-radius:16px;background:var(--surface2);}
-.g-line{position:absolute;left:0;right:0;height:1px;background:var(--text3);pointer-events:none;}
-.g-line.c{top:50%;opacity:.5;}
-.g-line.u{top:25%;opacity:.25;}
-.g-line.l{top:75%;opacity:.25;}
-.g-lbl{position:absolute;left:10px;font-size:10px;color:var(--text3);pointer-events:none;}
-.g-lbl.u{top:25%;transform:translateY(-50%);}
-.g-lbl.l{top:75%;transform:translateY(-50%);}
-#status-text{text-align:center;font-size:14px;color:var(--text2);min-height:24px;margin:0.4rem 0 1rem;transition:color .2s;}
-.controls{display:flex;gap:8px;justify-content:center;margin-top:auto;padding-top:1rem;}
-.controls button{
-  font-size:13px;padding:10px 16px;border-radius:10px;
-  border:1px solid var(--surface2);background:var(--surface);color:var(--text1);cursor:pointer;
+.wkey:active,.wkey.pressed{background:var(--accent);color:#fff;}
+.wkey.target{background:var(--warning);color:#fff;}
+.wkey .solf{font-size:12px;font-weight:600;pointer-events:none;}
+.wkey .lett{font-size:9px;color:var(--text3);pointer-events:none;}
+.wkey.pressed .lett,.wkey.target .lett{color:rgba(255,255,255,0.7);}
+.bkey{
+  position:absolute;width:30px;height:95px;background:var(--bkey);
+  border-radius:0 0 5px 5px;z-index:2;cursor:pointer;user-select:none;
+  display:flex;justify-content:center;align-items:flex-end;padding-bottom:6px;
 }
+.bkey:active,.bkey.pressed{background:var(--accent);}
+.bkey.target{background:var(--warning);}
+.bkey .lett{font-size:8px;color:rgba(255,255,255,0.6);pointer-events:none;}
+
+.controls{display:flex;gap:8px;justify-content:center;}
+.controls button{font-size:13px;padding:9px 14px;border-radius:10px;
+  border:1px solid var(--surface2);background:var(--surface);color:var(--text1);cursor:pointer;}
 .controls button:active{transform:scale(.97);}
-#done-screen{display:none;flex:1;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:1rem;}
-#done-screen h2{font-size:24px;font-weight:500;}
-#done-screen p{font-size:15px;color:var(--text2);}
-#flash{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .15s;z-index:99;}
+
+.hint{font-size:12px;color:var(--text3);text-align:center;line-height:1.6;}
 </style>
 </head>
 <body>
-<div id="flash"></div>
+<div class="version-tag">v2.0</div>
 <div id="app">
 
   <div id="intro">
-    <h1>🎵 음정 트레이너</h1>
-    <p>기준음을 충분히 듣고<br>그 음을 <b>길게 유지하며</b> 따라 불러보세요.<br><br>
-    정확한 음을 충분히 유지하면<br>다음 음으로 넘어갑니다.</p>
+    <h1>🎤 발성 트레이너</h1>
+    <p>건반에서 음을 누르면 그 음이 재생됩니다.<br>
+    그 음을 따라 내어 <b>정확한 피치로 안정되게</b><br>유지하는 연습을 합니다.<br><br>
+    상단 튜너는 지금 내는 음을 항상 보여줍니다.</p>
     <button class="primary-btn" id="start-btn">시작하기 (마이크 권한 허용)</button>
     <p id="mic-error"></p>
   </div>
 
-  <div id="trainer">
-    <div class="lesson-hdr">
-      <span id="lesson-name">레슨 1</span>
-      <span id="lesson-count">1 / 6</span>
-    </div>
-    <div class="prog-track"><div id="prog-fill"></div></div>
-
-    <div class="note-row"><span id="target-note">도</span></div>
-    <p id="target-freq">130.8 Hz · C3</p>
-
-    <div id="seq-dots"></div>
-    <div id="phase-badge">🔊 듣기</div>
-    <div id="countdown"></div>
-
-    <div id="hold-bar-wrap">
-      <div id="hold-bar"></div>
-      <div id="hold-bar-text"></div>
+  <div id="main">
+    <!-- 튜너 -->
+    <div class="tuner">
+      <div class="tuner-top">
+        <span class="tuner-label">🎙 지금 내 소리</span>
+        <span id="live-cents">—</span>
+      </div>
+      <div id="live-note">—</div>
+      <div class="meter">
+        <div class="meter-zone"></div>
+        <div class="meter-center"></div>
+        <div id="meter-needle"></div>
+      </div>
     </div>
 
-    <div class="graph-wrap">
-      <canvas id="pitch-canvas"></canvas>
-      <div class="g-line c" style="top:0;bottom:0;"></div>
-      <div class="g-line u"></div>
-      <div class="g-line l"></div>
-      <span class="g-lbl u">+50c</span>
-      <span class="g-lbl l">−50c</span>
+    <!-- 목표 / 채점 -->
+    <div class="target-card">
+      <div id="target-headline">목표음 — 건반을 눌러 선택하세요</div>
+      <div id="target-note">—</div>
+      <div id="target-sub"></div>
+      <div id="hold-bar-wrap">
+        <div id="hold-bar"></div>
+        <div id="hold-bar-text"></div>
+      </div>
+      <div id="stability-line"></div>
     </div>
 
-    <p id="status-text">잠시만요...</p>
+    <!-- 설정 -->
+    <div class="settings">
+      <label>유지 시간</label>
+      <input type="range" id="hold-time" min="1" max="15" step="1" value="4"/>
+      <span id="hold-time-val">4초</span>
+    </div>
+
+    <!-- 건반 -->
+    <div class="kb-wrap" id="kb-wrap">
+      <div class="keyboard" id="keyboard"></div>
+    </div>
 
     <div class="controls">
-      <button id="restart-btn">↩ 처음부터</button>
-      <button id="skip-btn">⏭ 건너뛰기</button>
-      <button id="replay-btn">▶ 다시 듣기</button>
+      <button id="replay-btn">▶ 목표음 다시 듣기</button>
+      <button id="clear-btn">✕ 목표 해제</button>
     </div>
-  </div>
 
-  <div id="done-screen">
-    <h2>🎉 모든 레슨 완료!</h2>
-    <p>온음과 반음 전 단계를 마쳤습니다.<br>꾸준히 연습하면 음감이 늘 거예요!</p>
-    <button class="primary-btn" id="done-restart">처음부터 다시</button>
+    <p class="hint">고음(A5 등)을 연습하려면 건반을 오른쪽으로 스크롤하세요.<br>
+    허용 오차는 ±15센트입니다.</p>
   </div>
 </div>
 
 <script>
-// ── 설정값 ────────────────────────────────────────────────────────────────────
-const A4 = 440
-const BASE_MIDI = 48          // C3 = 48
-const CENT_TOL = 30           // 허용 오차 (cents)
-const HOLD_SECONDS = 10       // 정확한 음을 유지해야 하는 시간(초)
-const TONE_DUR = 2.5          // 기준음 재생 시간
-const COUNTDOWN_SEC = 2       // 준비 카운트다운
-const HISTORY = 120
-const FAIL_GRACE = 0.5        // 음이 벗어나도 이 시간(초)까지는 유지 인정 (살짝 흔들림 허용)
+// ───────────────── 설정값 ─────────────────
+const A4=440
+const CENT_TOL=15            // 허용 오차 (고정)
+const KB_LOW=48             // C3
+const KB_HIGH=84            // C6
+let HOLD_SECONDS=4          // 유지 시간 (슬라이더로 변경)
+const FAIL_GRACE=0.4        // 살짝 흔들림 허용 시간
 
-const SOLFEGE = {0:'도',2:'레',4:'미',5:'파',7:'솔',9:'라',11:'시',
-                 1:'도#',3:'레#',6:'파#',8:'솔#',10:'라#'}
+const SOLFEGE={0:'도',1:'도#',2:'레',3:'레#',4:'미',5:'파',6:'파#',7:'솔',8:'솔#',9:'라',10:'라#',11:'시'}
+const LETTERS=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
+const isBlack=(m)=>[1,3,6,8,10].includes(((m%12)+12)%12)
 
-const LESSONS = [
-  { name:'온음: 도 → 레',              seq:[0,2,0] },
-  { name:'온음: 도 → 레 → 미',         seq:[0,2,4,2,0] },
-  { name:'온음: 도 → 레 → 미 → 파',    seq:[0,2,4,5,4,2,0] },
-  { name:'반음: 미 → 파',              seq:[4,5,4] },
-  { name:'반음: 시 → 도',              seq:[11,12,11] },
-  { name:'혼합: 도 → 레 → 미 → 파 → 솔', seq:[0,2,4,5,7,5,4,2,0] },
-]
-
-function midiOf(offset){ return BASE_MIDI + offset }
-function noteFreq(m){ return A4 * Math.pow(2,(m-69)/12) }
-function solName(offset){ const i=((offset%12)+12)%12; return SOLFEGE[i]||'?' }
+function noteFreq(m){ return A4*Math.pow(2,(m-69)/12) }
+function solName(m){ return SOLFEGE[((m%12)+12)%12] }
+function letterName(m){ return LETTERS[((m%12)+12)%12]+(Math.floor(m/12)-1) }
 function centsDiff(f,t){ return 1200*Math.log2(f/t) }
-function noteLetter(m){
-  const n=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
-  return n[((m%12)+12)%12]+(Math.floor(m/12)-1)
-}
+function freqToMidiFloat(f){ return 69+12*Math.log2(f/A4) }
 
-// ── 피치 감지 ─────────────────────────────────────────────────────────────────
-function autoCorrelate(buf, sr){
+// ───────────────── 피치 감지 ─────────────────
+function autoCorrelate(buf,sr){
   let rms=0
   for(let i=0;i<buf.length;i++) rms+=buf[i]*buf[i]
   rms=Math.sqrt(rms/buf.length)
@@ -186,7 +203,7 @@ function autoCorrelate(buf, sr){
   let r1=0,r2=SIZE-1
   for(let i=0;i<SIZE/2;i++){ if(Math.abs(buf[i])<0.2){r1=i;break} }
   for(let i=1;i<SIZE/2;i++){ if(Math.abs(buf[SIZE-i])<0.2){r2=SIZE-i;break} }
-  const s=buf.slice(r1,r2), n=s.length
+  const s=buf.slice(r1,r2),n=s.length
   if(n<2) return -1
   const c=new Float32Array(n)
   for(let i=0;i<n;i++) for(let j=0;j<n-i;j++) c[i]+=s[j]*s[j+i]
@@ -202,47 +219,42 @@ function autoCorrelate(buf, sr){
   return T>0 ? sr/T : -1
 }
 
-// ── 오디오 ────────────────────────────────────────────────────────────────────
-let audioCtx=null, analyser=null, mediaStream=null
+// ───────────────── 오디오 ─────────────────
+let audioCtx=null,analyser=null,mediaStream=null
 function getCtx(){
   if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)()
   if(audioCtx.state==='suspended') audioCtx.resume()
   return audioCtx
 }
-function playNote(m, dur=2.5){
-  return new Promise(resolve=>{
-    const ctx=getCtx()
-    const freq=noteFreq(m)
-    const gain=ctx.createGain()
-    const t=ctx.currentTime
-    gain.gain.setValueAtTime(0,t)
-    gain.gain.linearRampToValueAtTime(0.8, t+0.08)
-    gain.gain.setValueAtTime(0.8, t+dur-0.15)
-    gain.gain.linearRampToValueAtTime(0, t+dur)
-    gain.connect(ctx.destination)
-    const harmonics=[{f:1,v:1},{f:2,v:0.4},{f:3,v:0.18},{f:4,v:0.08}]
-    let ended=0
-    harmonics.forEach(({f,v})=>{
-      const osc=ctx.createOscillator()
-      const g=ctx.createGain()
-      osc.type='sine'; osc.frequency.value=freq*f; g.gain.value=v
-      osc.connect(g); g.connect(gain)
-      osc.start(t); osc.stop(t+dur)
-      osc.onended=()=>{ if(++ended===harmonics.length) resolve() }
-    })
+function playNote(m,dur=1.5){
+  const ctx=getCtx()
+  const freq=noteFreq(m)
+  const gain=ctx.createGain()
+  const t=ctx.currentTime
+  gain.gain.setValueAtTime(0,t)
+  gain.gain.linearRampToValueAtTime(0.8,t+0.06)
+  gain.gain.setValueAtTime(0.8,t+dur-0.12)
+  gain.gain.linearRampToValueAtTime(0,t+dur)
+  gain.connect(ctx.destination)
+  const harmonics=[{f:1,v:1},{f:2,v:0.4},{f:3,v:0.18},{f:4,v:0.08}]
+  harmonics.forEach(({f,v})=>{
+    const osc=ctx.createOscillator()
+    const g=ctx.createGain()
+    osc.type='sine';osc.frequency.value=freq*f;g.gain.value=v
+    osc.connect(g);g.connect(gain)
+    osc.start(t);osc.stop(t+dur)
   })
 }
 function playSuccess(){
-  const ctx=getCtx(); const t=ctx.currentTime
+  const ctx=getCtx();const t=ctx.currentTime
   const gain=ctx.createGain()
   gain.gain.setValueAtTime(0.35,t)
   gain.gain.linearRampToValueAtTime(0,t+0.5)
   gain.connect(ctx.destination)
   ;[523,659,784].forEach((fr,i)=>{
     const osc=ctx.createOscillator()
-    osc.type='sine'; osc.frequency.value=fr
-    osc.connect(gain)
-    osc.start(t+i*0.08); osc.stop(t+0.5)
+    osc.type='sine';osc.frequency.value=fr
+    osc.connect(gain);osc.start(t+i*0.08);osc.stop(t+0.5)
   })
 }
 async function startMic(){
@@ -256,237 +268,195 @@ async function startMic(){
   src.connect(analyser)
 }
 
-// ── 상태 ──────────────────────────────────────────────────────────────────────
-let lessonIdx=0, stepIdx=0
-let phase='idle'  // idle | playing-tone | countdown | singing | success
-let pitchHistory=[]
-let rafId=null, countdownTimer=null
-let holdAccum=0      // 정확하게 유지한 누적 시간(초)
-let lastFrameTime=0  // 프레임 간 시간 측정용
-let offGraceTimer=0  // 음에서 벗어난 누적 시간
-let stepToken=0      // 스텝 진행 토큰 (꼬임 방지 핵심)
+// ───────────────── 상태 ─────────────────
+let targetMidi=null
+let holdAccum=0
+let offGrace=0
+let lastFrameTime=0
+let recentCents=[]   // 안정성 측정용 (최근 cents 값들)
+let succeeded=false
 
-function $(id){ return document.getElementById(id) }
+function $(id){return document.getElementById(id)}
 
-// ── UI ────────────────────────────────────────────────────────────────────────
-function setPhaseUI(p){
-  phase=p
-  const badge=$('phase-badge'), status=$('status-text')
-  $('countdown').textContent=''
-  if(p==='playing-tone'){
-    badge.textContent='🔊 듣기'; badge.style.color='var(--accent)'
-    status.textContent='기준음을 잘 들어보세요'; status.style.color='var(--text2)'
-    $('pitch-canvas').style.opacity='0.3'
-    $('hold-bar-text').textContent=''
-  } else if(p==='countdown'){
-    badge.textContent='🎤 준비'; badge.style.color='var(--warning)'
-    status.textContent='잠깐 숨 고르세요...'
-    $('pitch-canvas').style.opacity='0.5'
-  } else if(p==='singing'){
-    badge.textContent='🎤 길게 유지하기'; badge.style.color='var(--text1)'
-    status.textContent='소리를 내보세요'; status.style.color='var(--text2)'
-    $('pitch-canvas').style.opacity='1'
-  } else if(p==='success'){
-    badge.textContent='✅ 성공!'; badge.style.color='var(--success)'
-    status.textContent='잘 하셨어요!'; status.style.color='var(--success)'
+// ───────────────── 건반 생성 ─────────────────
+function buildKeyboard(){
+  const kb=$('keyboard')
+  kb.innerHTML=''
+  // 흰건반 먼저 배치
+  const whiteKeys=[]
+  for(let m=KB_LOW;m<=KB_HIGH;m++){
+    if(!isBlack(m)) whiteKeys.push(m)
   }
+  const wWidth=46
+  whiteKeys.forEach((m,i)=>{
+    const el=document.createElement('div')
+    el.className='wkey'
+    el.dataset.midi=m
+    el.innerHTML=`<span class="solf">${solName(m)}</span><span class="lett">${letterName(m)}</span>`
+    el.addEventListener('click',()=>selectTarget(m))
+    kb.appendChild(el)
+  })
+  // 검은건반 배치 (흰건반 사이)
+  let wi=0
+  for(let m=KB_LOW;m<=KB_HIGH;m++){
+    if(isBlack(m)){
+      const el=document.createElement('div')
+      el.className='bkey'
+      el.dataset.midi=m
+      el.style.left=(wi*wWidth - 15)+'px'
+      el.innerHTML=`<span class="lett">${letterName(m)}</span>`
+      el.addEventListener('click',(e)=>{e.stopPropagation();selectTarget(m)})
+      kb.appendChild(el)
+    } else {
+      wi++
+    }
+  }
+  // 키보드 전체 너비
+  kb.style.width=(whiteKeys.length*wWidth)+'px'
 }
 
-function updateHeader(){
-  const lesson=LESSONS[lessonIdx]
-  $('lesson-name').textContent=lesson.name
-  $('lesson-count').textContent=`${lessonIdx+1} / ${LESSONS.length}`
-  const pct=((lessonIdx+stepIdx/lesson.seq.length)/LESSONS.length)*100
-  $('prog-fill').style.width=pct+'%'
-  const offset=lesson.seq[stepIdx]
-  const m=midiOf(offset)
-  $('target-note').textContent=solName(offset)
-  $('target-freq').textContent=`${noteFreq(m).toFixed(1)} Hz · ${noteLetter(m)}`
-  const dots=$('seq-dots')
-  dots.innerHTML=''
-  lesson.seq.forEach((off,i)=>{
-    const d=document.createElement('div')
-    d.className='dot'+(i<stepIdx?' done':i===stepIdx?' current':'')
-    d.textContent=solName(off)
-    dots.appendChild(d)
+function highlightKeys(){
+  document.querySelectorAll('.wkey,.bkey').forEach(el=>{
+    el.classList.toggle('target', Number(el.dataset.midi)===targetMidi)
   })
 }
 
-function updateHoldBar(){
-  const pct=Math.min(100, (holdAccum/HOLD_SECONDS)*100)
-  $('hold-bar').style.width=pct+'%'
-  if(phase==='singing'){
-    const remain=Math.max(0, HOLD_SECONDS-holdAccum)
-    $('hold-bar-text').textContent=`${remain.toFixed(1)}초 남음`
-  }
+// ───────────────── 목표 선택 ─────────────────
+function selectTarget(m){
+  targetMidi=m
+  holdAccum=0;offGrace=0;succeeded=false;recentCents=[]
+  $('target-headline').textContent='목표음'
+  $('target-note').innerHTML=`${solName(m)} <span class="oct">${letterName(m)}</span>`
+  $('target-sub').textContent=`${noteFreq(m).toFixed(1)} Hz · 이 음을 따라 내세요`
+  $('hold-bar').style.width='0%'
+  $('hold-bar').style.background='var(--success)'
+  $('hold-bar-text').textContent=`${HOLD_SECONDS}초 유지 목표`
+  $('stability-line').textContent=''
+  highlightKeys()
+  playNote(m,1.5)
+  lastFrameTime=performance.now()
 }
 
-// ── 그래프 ───────────────────────────────────────────────────────────────────
-const canvas=$('pitch-canvas')
-const ctx2d=canvas.getContext('2d')
-function drawGraph(){
-  const dpr=window.devicePixelRatio||1
-  const w=canvas.clientWidth,h=canvas.clientHeight
-  if(canvas.width!==w*dpr||canvas.height!==h*dpr){canvas.width=w*dpr;canvas.height=h*dpr}
-  ctx2d.setTransform(dpr,0,0,dpr,0,0)
-  ctx2d.clearRect(0,0,w,h)
-  const vis=pitchHistory.slice(-HISTORY)
-  ctx2d.lineWidth=2.5;ctx2d.lineCap='round';ctx2d.lineJoin='round'
-  ctx2d.beginPath()
-  let started=false,lastC=null,lastX=0,lastY=h/2
-  for(let i=0;i<vis.length;i++){
-    const c=vis[i]
-    const x=(i/(HISTORY-1))*w
-    if(c===null||c===undefined){started=false;continue}
-    const cl=Math.max(-50,Math.min(50,c))
-    const y=h/2-(cl/50)*(h/2-10)
-    if(!started){ctx2d.moveTo(x,y);started=true}else ctx2d.lineTo(x,y)
-    lastC=c;lastX=x;lastY=y
-  }
-  let color='rgba(150,150,150,0.4)'
-  if(lastC!==null){const a=Math.abs(lastC);color=a<CENT_TOL?'#1D9E75':a<CENT_TOL*1.8?'#EF9F27':'#E24B4A'}
-  ctx2d.strokeStyle=color;ctx2d.stroke()
-  if(lastC!==null){ctx2d.beginPath();ctx2d.arc(lastX,lastY,5,0,Math.PI*2);ctx2d.fillStyle=color;ctx2d.fill()}
+function clearTarget(){
+  targetMidi=null
+  $('target-headline').textContent='목표음 — 건반을 눌러 선택하세요'
+  $('target-note').textContent='—'
+  $('target-sub').textContent=''
+  $('hold-bar').style.width='0%'
+  $('hold-bar-text').textContent=''
+  $('stability-line').textContent=''
+  highlightKeys()
 }
 
-function flash(color){
-  const el=$('flash')
-  el.style.background=color; el.style.opacity='0.35'
-  setTimeout(()=>el.style.opacity='0',200)
-}
-
-// ── 레슨 흐름 (stepToken으로 꼬임 방지) ──────────────────────────────────────────
-function startStep(){
-  stepToken++                 // 새 토큰 발급 → 이전 타이머/콜백 무효화
-  const myToken=stepToken
-  pitchHistory=[]; holdAccum=0; offGraceTimer=0
-  updateHoldBar(); updateHeader()
-
-  setPhaseUI('playing-tone')
-  const m=midiOf(LESSONS[lessonIdx].seq[stepIdx])
-  playNote(m, TONE_DUR).then(()=>{
-    if(myToken!==stepToken) return   // 그 사이 스텝이 바뀌었으면 중단
-    // 카운트다운
-    setPhaseUI('countdown')
-    let cnt=COUNTDOWN_SEC
-    $('countdown').textContent=cnt
-    clearInterval(countdownTimer)
-    countdownTimer=setInterval(()=>{
-      if(myToken!==stepToken){ clearInterval(countdownTimer); return }
-      cnt--
-      if(cnt>0){ $('countdown').textContent=cnt }
-      else{
-        clearInterval(countdownTimer)
-        $('countdown').textContent=''
-        if(myToken!==stepToken) return
-        setPhaseUI('singing')
-        lastFrameTime=performance.now()
-      }
-    },1000)
-  })
-}
-
-function onSuccess(){
-  const myToken=stepToken
-  setPhaseUI('success')
-  $('hold-bar').style.width='100%'
-  $('hold-bar-text').textContent='완료!'
-  playSuccess(); flash('#1D9E75')
-  setTimeout(()=>{ if(myToken===stepToken) advance() }, 1200)
-}
-
-function advance(){
-  const lesson=LESSONS[lessonIdx]
-  if(stepIdx < lesson.seq.length-1){
-    stepIdx++
-  } else if(lessonIdx < LESSONS.length-1){
-    lessonIdx++; stepIdx=0
-  } else {
-    $('trainer').style.display='none'
-    $('done-screen').style.display='flex'
-    stepToken++   // 루프 내 처리 중단
-    return
-  }
-  startStep()
-}
-
-// ── 메인 루프 ─────────────────────────────────────────────────────────────────
+// ───────────────── 메인 루프 ─────────────────
 function loop(){
   const now=performance.now()
+  const dt=(now-lastFrameTime)/1000
+  lastFrameTime=now
 
-  if(phase==='singing' && analyser){
-    const dt=(now-lastFrameTime)/1000   // 경과 시간(초)
-    lastFrameTime=now
-
+  let liveFreq=-1
+  if(analyser){
     const buf=new Float32Array(analyser.fftSize)
     analyser.getFloatTimeDomainData(buf)
-    const freq=autoCorrelate(buf, audioCtx.sampleRate)
-
-    let cents=null
-    let onPitch=false
-    if(freq>40 && freq<1500){
-      const target=noteFreq(midiOf(LESSONS[lessonIdx].seq[stepIdx]))
-      cents=centsDiff(freq, target)
-      onPitch=Math.abs(cents)<CENT_TOL
-    }
-
-    if(onPitch){
-      holdAccum += dt
-      offGraceTimer=0
-      $('status-text').textContent='✓ 좋아요! 계속 유지하세요'
-      $('status-text').style.color='var(--success)'
-    } else {
-      // 살짝 벗어남: grace 시간 동안은 누적 유지 (게이지만 멈춤)
-      offGraceTimer += dt
-      if(offGraceTimer > FAIL_GRACE){
-        // grace 초과 → 누적을 서서히 깎음 (완전 리셋은 아님)
-        holdAccum = Math.max(0, holdAccum - dt*0.5)
-      }
-      if(cents!==null){
-        const dir=cents>0?'↓ 살짝 낮춰보세요':'↑ 살짝 올려보세요'
-        $('status-text').textContent=dir+`  (${Math.round(cents)>0?'+':''}${Math.round(cents)}c)`
-      } else {
-        $('status-text').textContent='소리를 내보세요 🎤'
-      }
-      $('status-text').style.color='var(--text2)'
-    }
-
-    updateHoldBar()
-    pitchHistory.push(cents)
-    if(pitchHistory.length>HISTORY*2) pitchHistory.shift()
-
-    if(holdAccum >= HOLD_SECONDS){
-      onSuccess()
-    }
-  } else {
-    lastFrameTime=now
+    liveFreq=autoCorrelate(buf,audioCtx.sampleRate)
   }
 
-  drawGraph()
-  rafId=requestAnimationFrame(loop)
+  // ── 튜너 표시 (항상) ──
+  if(liveFreq>40 && liveFreq<2000){
+    const mf=freqToMidiFloat(liveFreq)
+    const nearest=Math.round(mf)
+    const off=(mf-nearest)*100
+    $('live-note').innerHTML=`${solName(nearest)} <span class="oct">${letterName(nearest)}</span>`
+    $('live-cents').textContent=`${off>0?'+':''}${Math.round(off)}c`
+    // 미터 (가장 가까운 음 기준 ±50c)
+    const pct=50+Math.max(-50,Math.min(50,off))
+    const needle=$('meter-needle')
+    needle.style.left=pct+'%'
+    needle.style.background=Math.abs(off)<CENT_TOL?'var(--success)':Math.abs(off)<30?'var(--warning)':'var(--danger)'
+  } else {
+    $('live-note').textContent='—'
+    $('live-cents').textContent='소리를 내보세요'
+    $('meter-needle').style.left='50%'
+    $('meter-needle').style.background='var(--text2)'
+  }
+
+  // ── 목표음 채점 ──
+  if(targetMidi!==null && !succeeded && liveFreq>40 && liveFreq<2000){
+    const target=noteFreq(targetMidi)
+    const cents=centsDiff(liveFreq,target)
+    const onPitch=Math.abs(cents)<CENT_TOL
+
+    // 안정성: 최근 1.5초 윈도우
+    recentCents.push({t:now,c:cents})
+    recentCents=recentCents.filter(x=>now-x.t<1500)
+
+    if(onPitch){
+      holdAccum+=dt;offGrace=0
+    } else {
+      offGrace+=dt
+      if(offGrace>FAIL_GRACE) holdAccum=Math.max(0,holdAccum-dt*0.6)
+    }
+
+    // 근접도 안내 (목표에서 멀면)
+    const semitoneOff=Math.round(freqToMidiFloat(liveFreq))-targetMidi
+    let sub=''
+    if(Math.abs(cents)<CENT_TOL){
+      sub='✓ 정확해요! 유지하세요'
+    } else if(Math.abs(semitoneOff)>=1){
+      const absSt=Math.abs(semitoneOff)
+      sub=(semitoneOff>0?'너무 높아요 ':'너무 낮아요 ')+`(${absSt}반음 차이)`
+    } else {
+      sub=cents>0?'↓ 살짝 낮춰보세요':'↑ 살짝 올려보세요'
+    }
+    $('target-sub').textContent=sub
+
+    // 유지 바
+    const pct=Math.min(100,(holdAccum/HOLD_SECONDS)*100)
+    $('hold-bar').style.width=pct+'%'
+    $('hold-bar-text').textContent=`${Math.max(0,HOLD_SECONDS-holdAccum).toFixed(1)}초 남음`
+
+    // 안정성 표시 (표준편차 근사: 최대-최소 폭)
+    if(recentCents.length>5){
+      const vals=recentCents.map(x=>x.c)
+      const spread=Math.max(...vals)-Math.min(...vals)
+      $('stability-line').textContent=`흔들림 폭: ±${Math.round(spread/2)}c ${spread<20?'(안정적 👍)':spread<40?'(보통)':'(불안정)'}`
+    }
+
+    if(holdAccum>=HOLD_SECONDS){
+      succeeded=true
+      $('hold-bar').style.width='100%'
+      $('hold-bar-text').textContent='성공! 🎉'
+      $('target-sub').textContent='훌륭해요! 다른 음을 연습하거나 다시 도전하세요'
+      playSuccess()
+    }
+  }
+
+  requestAnimationFrame(loop)
 }
 
-// ── 버튼 ──────────────────────────────────────────────────────────────────────
-$('start-btn').addEventListener('click', async()=>{
+// ───────────────── 이벤트 ─────────────────
+$('start-btn').addEventListener('click',async()=>{
   try{
-    getCtx(); await startMic()
+    getCtx();await startMic()
     $('intro').style.display='none'
-    $('trainer').style.display='flex'
-    startStep()
-    rafId=requestAnimationFrame(loop)
+    $('main').style.display='flex'
+    buildKeyboard()
+    lastFrameTime=performance.now()
+    requestAnimationFrame(loop)
   }catch(e){
     $('mic-error').textContent='마이크 권한이 필요합니다: '+e.message
   }
 })
-$('replay-btn').addEventListener('click',()=>{ startStep() })
-$('skip-btn').addEventListener('click',()=>{ advance() })
-$('restart-btn').addEventListener('click',()=>{ lessonIdx=0; stepIdx=0; startStep() })
-$('done-restart').addEventListener('click',()=>{
-  lessonIdx=0; stepIdx=0
-  $('done-screen').style.display='none'
-  $('trainer').style.display='flex'
-  startStep()
+$('hold-time').addEventListener('input',(e)=>{
+  HOLD_SECONDS=Number(e.target.value)
+  $('hold-time-val').textContent=HOLD_SECONDS+'초'
+  if(targetMidi!==null && !succeeded){
+    holdAccum=0
+    $('hold-bar-text').textContent=`${HOLD_SECONDS}초 유지 목표`
+  }
 })
+$('replay-btn').addEventListener('click',()=>{ if(targetMidi!==null) playNote(targetMidi,1.5) })
+$('clear-btn').addEventListener('click',clearTarget)
 </script>
 </body>
 </html>
