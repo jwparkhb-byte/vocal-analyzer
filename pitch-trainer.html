@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="theme-color" content="#0c447c"/>
-<title>발성 트레이너 v2.1</title>
+<title>발성 트레이너 v2.2</title>
 <style>
 :root{
   --bg:#f5f5f0; --surface:#fff; --surface2:#e8e8e2;
@@ -45,22 +45,16 @@ body{
 }
 .tuner-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;}
 .tuner-label{font-size:12px;color:var(--text2);}
-/* 튜너 본문: 왼쪽 음이름 + 오른쪽 세로 미터 */
+/* 튜너 본문: 왼쪽 음이름 + 오른쪽 세로 눈금자 */
 .tuner-body{display:flex;align-items:stretch;gap:1rem;}
 .tuner-info{flex:1;display:flex;flex-direction:column;justify-content:center;}
 #live-note{font-size:40px;font-weight:300;line-height:1;}
 #live-note .oct{font-size:18px;color:var(--text3);}
 #live-cents{font-size:14px;color:var(--text2);min-height:18px;margin-top:4px;}
-/* 세로 미터 */
-.meter{position:relative;width:56px;height:140px;background:var(--surface2);
+/* 세로 음정 눈금자 */
+.strip{position:relative;width:96px;height:200px;background:var(--surface2);
   border-radius:12px;overflow:hidden;flex-shrink:0;}
-.meter-center{position:absolute;top:50%;left:0;right:0;height:2px;background:var(--text3);opacity:0.6;}
-.meter-zone{position:absolute;left:0;right:0;top:calc(50% - 15%);height:30%;background:var(--success);opacity:0.15;}
-#meter-needle{position:absolute;left:6px;right:6px;height:8px;border-radius:4px;
-  background:var(--text2);top:50%;transform:translateY(-50%);transition:top .08s,background .08s;}
-.meter-lbl{position:absolute;right:5px;font-size:9px;color:var(--text3);}
-.meter-lbl.hi{top:6px;}
-.meter-lbl.lo{bottom:6px;}
+#strip-canvas{width:100%;height:100%;display:block;}
 
 /* 목표 / 채점 영역 */
 .target-card{
@@ -120,7 +114,7 @@ body{
 </style>
 </head>
 <body>
-<div class="version-tag">v2.1</div>
+<div class="version-tag">v2.2</div>
 <div id="app">
 
   <div id="intro">
@@ -143,12 +137,8 @@ body{
         <div class="tuner-info">
           <div id="live-note">—</div>
         </div>
-        <div class="meter">
-          <span class="meter-lbl hi">+50c</span>
-          <span class="meter-lbl lo">−50c</span>
-          <div class="meter-zone"></div>
-          <div class="meter-center"></div>
-          <div id="meter-needle"></div>
+        <div class="strip">
+          <canvas id="strip-canvas"></canvas>
         </div>
       </div>
     </div>
@@ -361,6 +351,107 @@ function clearTarget(){
   highlightKeys()
 }
 
+// ───────────────── 세로 음정 눈금자 ─────────────────
+const stripCanvas=$('strip-canvas')
+const stripCtx=stripCanvas.getContext('2d')
+let stripCenter=null   // 부드러운 스크롤용 중심 (MIDI float)
+const SEMITONES_VISIBLE=7   // 화면에 보이는 반음 범위 (위아래 합쳐 약 7개)
+
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
+
+function drawStrip(liveMidi){
+  const dpr=window.devicePixelRatio||1
+  const w=stripCanvas.clientWidth, h=stripCanvas.clientHeight
+  if(stripCanvas.width!==w*dpr||stripCanvas.height!==h*dpr){
+    stripCanvas.width=w*dpr; stripCanvas.height=h*dpr
+  }
+  const ctx=stripCtx
+  ctx.setTransform(dpr,0,0,dpr,0,0)
+  ctx.clearRect(0,0,w,h)
+
+  // 중심 결정: 목표음 있으면 목표음 고정, 없으면 현재 소리 따라 부드럽게 이동
+  let desiredCenter
+  if(targetMidi!==null){
+    desiredCenter=targetMidi
+  } else if(liveMidi!==null){
+    desiredCenter=liveMidi
+  } else if(stripCenter!==null){
+    desiredCenter=stripCenter
+  } else {
+    desiredCenter=60 // 기본 C4
+  }
+  // 부드러운 추적
+  if(stripCenter===null) stripCenter=desiredCenter
+  else stripCenter += (desiredCenter-stripCenter)*0.15
+
+  const pxPerSemitone=h/SEMITONES_VISIBLE
+  // midi -> y 좌표 (높은 음 = 위)
+  const midiToY=(m)=> h/2 - (m-stripCenter)*pxPerSemitone
+
+  const txtColor=cssVar('--text2')
+  const txt3=cssVar('--text3')
+  const successCol=cssVar('--success')
+
+  // 눈금선 + 계이름
+  const lowM=Math.floor(stripCenter-SEMITONES_VISIBLE/2-1)
+  const highM=Math.ceil(stripCenter+SEMITONES_VISIBLE/2+1)
+  for(let m=lowM;m<=highM;m++){
+    const y=midiToY(m)
+    if(y<-10||y>h+10) continue
+    // 목표음 강조 띠
+    if(targetMidi!==null && m===targetMidi){
+      const zoneH=pxPerSemitone*(CENT_TOL/100)*2  // ±15c 띠 높이
+      ctx.fillStyle=successCol
+      ctx.globalAlpha=0.18
+      ctx.fillRect(0, y-zoneH/2, w, zoneH)
+      ctx.globalAlpha=1
+    }
+    // 눈금선
+    ctx.strokeStyle=txt3
+    ctx.globalAlpha=0.25
+    ctx.lineWidth=1
+    ctx.beginPath()
+    ctx.moveTo(0,y); ctx.lineTo(w,y)
+    ctx.stroke()
+    ctx.globalAlpha=1
+    // 계이름 (흰음만 진하게, 검은음은 옅게)
+    const isBlk=isBlack(m)
+    ctx.fillStyle = (targetMidi===m)? successCol : (isBlk? txt3 : txtColor)
+    ctx.font=`${isBlk?10:12}px -apple-system,sans-serif`
+    ctx.textBaseline='middle'
+    ctx.fillText(`${solName(m)} ${letterName(m)}`, 8, y)
+  }
+
+  // 현재 소리 위치 점/선
+  if(liveMidi!==null){
+    const y=midiToY(liveMidi)
+    let col=successCol
+    if(targetMidi!==null){
+      const cents=(liveMidi-targetMidi)*100
+      const a=Math.abs(cents)
+      col= a<CENT_TOL?successCol: a<30?cssVar('--warning'):cssVar('--danger')
+    } else {
+      // 자유 모드: 가장 가까운 음 기준
+      const off=(liveMidi-Math.round(liveMidi))*100
+      col= Math.abs(off)<CENT_TOL?successCol:cssVar('--text1')
+    }
+    ctx.fillStyle=col
+    ctx.beginPath()
+    ctx.arc(w-16, y, 6, 0, Math.PI*2)
+    ctx.fill()
+    // 가로 지시선
+    ctx.strokeStyle=col
+    ctx.lineWidth=2
+    ctx.globalAlpha=0.5
+    ctx.beginPath()
+    ctx.moveTo(0,y); ctx.lineTo(w-22,y)
+    ctx.stroke()
+    ctx.globalAlpha=1
+  }
+}
+
 // ───────────────── 메인 루프 ─────────────────
 function loop(){
   const now=performance.now()
@@ -375,24 +466,19 @@ function loop(){
   }
 
   // ── 튜너 표시 (항상) ──
+  let liveMidiFloat=null
   if(liveFreq>40 && liveFreq<2000){
     const mf=freqToMidiFloat(liveFreq)
+    liveMidiFloat=mf
     const nearest=Math.round(mf)
     const off=(mf-nearest)*100
     $('live-note').innerHTML=`${solName(nearest)} <span class="oct">${letterName(nearest)}</span>`
     $('live-cents').textContent=`${off>0?'+':''}${Math.round(off)}c`
-    // 미터 (가장 가까운 음 기준 ±50c) - 세로: 위=높음, 아래=낮음
-    const clampedOff=Math.max(-50,Math.min(50,off))
-    const topPct=50-clampedOff   // +50c -> top 0%(위), -50c -> top 100%(아래)
-    const needle=$('meter-needle')
-    needle.style.top=topPct+'%'
-    needle.style.background=Math.abs(off)<CENT_TOL?'var(--success)':Math.abs(off)<30?'var(--warning)':'var(--danger)'
   } else {
     $('live-note').textContent='—'
     $('live-cents').textContent='소리를 내보세요'
-    $('meter-needle').style.top='50%'
-    $('meter-needle').style.background='var(--text2)'
   }
+  drawStrip(liveMidiFloat)
 
   // ── 목표음 채점 ──
   if(targetMidi!==null && !succeeded && liveFreq>40 && liveFreq<2000){
